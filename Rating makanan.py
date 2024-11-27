@@ -1,0 +1,1 @@
+print("VERA CANTIK BANGET")
