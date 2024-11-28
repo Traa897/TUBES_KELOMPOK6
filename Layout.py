@@ -3,7 +3,8 @@ import random
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
     QPushButton, QMessageBox, QTableWidget, QTableWidgetItem, QTabWidget, 
-    QGridLayout, QScrollArea, QLineEdit, QFrame, QDialog, QRadioButton, QButtonGroup
+    QGridLayout, QScrollArea, QLineEdit, QFrame, QDialog, QRadioButton, QButtonGroup, 
+    QTextEdit, QDialogButtonBox
 )
 from PyQt5.QtGui import QFont, QPixmap, QPainter, QColor, QPen
 from PyQt5.QtCore import Qt, QSize, QRect
@@ -22,10 +23,48 @@ class RoundedWidget(QWidget):
         painter.setPen(Qt.NoPen)
         painter.drawRoundedRect(0, 0, self.width(), self.height(), self.radius, self.radius)
 
+class CommentDialog(QDialog):
+    def __init__(self, restaurant_name, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(f"Komentar untuk {restaurant_name}")
+        self.setGeometry(200, 200, 400, 300)
+        
+        layout = QVBoxLayout()
+        
+        # Comment Input
+        self.comment_input = QTextEdit()
+        self.comment_input.setPlaceholderText("Tulis komentar Anda tentang restoran ini...")
+        layout.addWidget(self.comment_input)
+        
+        # Rating Selection
+        rating_layout = QHBoxLayout()
+        rating_label = QLabel("Rating:")
+        rating_layout.addWidget(rating_label)
+        
+        self.rating_input = QLineEdit()
+        self.rating_input.setPlaceholderText("Beri rating (1-5)")
+        rating_layout.addWidget(self.rating_input)
+        
+        layout.addLayout(rating_layout)
+        
+        # Buttons
+        button_box = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+        layout.addWidget(button_box)
+        
+        self.setLayout(layout)
+
 class RestaurantItem(RoundedWidget):
     def __init__(self, restaurant_data, parent=None):
         super().__init__(parent=parent)
         self.restaurant_data = restaurant_data
+        
+        # Initialize comments list
+        self.comments = []
+        
         layout = QVBoxLayout()
 
         # Restaurant Image (Placeholder)
@@ -47,10 +86,20 @@ class RestaurantItem(RoundedWidget):
         rating_label = QLabel(f"★ {restaurant_data['rating']}")
         rating_label.setStyleSheet("color: orange;")
 
+        # Comment Button
+        comment_btn = QPushButton("Tambah Komentar")
+        comment_btn.clicked.connect(self.add_comment)
+
+        # Comments Display
+        self.comments_label = QLabel("Komentar: 0")
+        comment_btn.clicked.connect(self.show_comments)
+
         layout.addWidget(self.image_label)
         layout.addWidget(name_label)
         layout.addWidget(details_label)
         layout.addWidget(rating_label)
+        layout.addWidget(comment_btn)
+        layout.addWidget(self.comments_label)
 
         self.setLayout(layout)
         self.setStyleSheet("""
@@ -58,6 +107,57 @@ class RestaurantItem(RoundedWidget):
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         """)
+
+    def add_comment(self):
+        dialog = CommentDialog(self.restaurant_data['name'], self)
+        if dialog.exec_() == QDialog.Accepted:
+            comment_text = dialog.comment_input.toPlainText()
+            rating_text = dialog.rating_input.text()
+            
+            # Basic validation
+            try:
+                rating = float(rating_text)
+                if 1 <= rating <= 5:
+                    self.comments.append({
+                        'text': comment_text,
+                        'rating': rating
+                    })
+                    self.update_comments_display()
+                else:
+                    QMessageBox.warning(self, "Rating Tidak Valid", "Rating harus antara 1-5")
+            except ValueError:
+                QMessageBox.warning(self, "Rating Tidak Valid", "Masukkan angka yang valid")
+
+    def update_comments_display(self):
+        self.comments_label.setText(f"Komentar: {len(self.comments)}")
+
+    def show_comments(self):
+        if not self.comments:
+            QMessageBox.information(self, "Komentar", "Belum ada komentar.")
+            return
+
+        comment_dialog = QDialog(self)
+        comment_dialog.setWindowTitle(f"Komentar {self.restaurant_data['name']}")
+        comment_dialog.setGeometry(200, 200, 400, 300)
+
+        layout = QVBoxLayout()
+        
+        for comment in self.comments:
+            comment_widget = QWidget()
+            comment_layout = QVBoxLayout()
+            
+            text_label = QLabel(comment['text'])
+            rating_label = QLabel(f"Rating: {comment['rating']} ★")
+            rating_label.setStyleSheet("color: orange;")
+            
+            comment_layout.addWidget(text_label)
+            comment_layout.addWidget(rating_label)
+            
+            comment_widget.setLayout(comment_layout)
+            layout.addWidget(comment_widget)
+        
+        comment_dialog.setLayout(layout)
+        comment_dialog.exec_()
 
 class FoodDeliveryApp(QMainWindow):
     def __init__(self):
