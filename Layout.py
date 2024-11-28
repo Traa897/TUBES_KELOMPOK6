@@ -1,12 +1,7 @@
 import sys
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-    QPushButton, QLineEdit, QScrollArea, QGridLayout, QDialog, QRadioButton, QButtonGroup, 
-    QComboBox, QListWidget, QListWidgetItem
-)
-from PyQt5.QtGui import QPainter, QColor, QFont
-from PyQt5.QtCore import Qt
-
+from PyQt5.QtWidgets import*
+from PyQt5.QtGui import*
+from PyQt5.QtCore import*
 
 class RoundedWidget(QWidget):
     def __init__(self, color=Qt.white, radius=10, parent=None):
@@ -249,10 +244,10 @@ class FoodDeliveryApp(QMainWindow):
 
         # Sample Restaurant Data
         restaurants = [
-            {"name": "Nasi Padang Bulan", "cuisine": "kilo 50", "distance": 1.2, "rating": 4.5},
-            {"name": "Eagan Gado Gado", "cuisine": "kampung baru", "distance": 2.5, "rating": 4.8},
+            {"name": "Nasi Padang Ondemande", "cuisine": "kilo 50", "distance": 1.2, "rating": 4.5},
+            {"name": "Gado Gado Pak Gundul", "cuisine": "kampung baru", "distance": 2.5, "rating": 4.8},
             {"name": "Austin Kebab", "cuisine": "Bangun Reksa", "distance": 0.8, "rating": 4.2},
-            {"name": "Mie Ayam", "cuisine": "Rapak", "distance": 3.0, "rating": 4.6},
+            {"name": "Mie Ayam Plat KT", "cuisine": "Rapak", "distance": 3.0, "rating": 4.6},
         ]
 
         row, col = 0, 0
