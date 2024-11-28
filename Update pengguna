@@ -1,1 +1,227 @@
+import sys
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
+    QLabel, QPushButton, QScrollArea, QGridLayout, QFrame
+)
+from PyQt5.QtGui import QFont, QIcon
+from PyQt5.QtCore import Qt
 
+class BestSellerRecommendationPage(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Rekomendasi Best Seller Makanan")
+        self.setGeometry(100, 100, 1200, 800)
+        
+        # Main Container
+        main_container = QWidget()
+        main_layout = QVBoxLayout(main_container)
+        
+        # Header
+        header = self.create_header()
+        main_layout.addWidget(header)
+        
+        # Scroll Area for Best Seller Recommendations
+        scroll_area = QScrollArea()
+        scroll_widget = QWidget()
+        scroll_layout = QGridLayout(scroll_widget)
+        scroll_area.setWidget(scroll_widget)
+        scroll_area.setWidgetResizable(True)
+        
+        # Best Seller Categories
+        categories = [
+            {
+                "category": "Makanan Tradisional",
+                "items": [
+                    {
+                        "name": "Nasi Goreng Kampung",
+                        "restaurant": "Warung Mbah Marijan",
+                        "rating": 4.9,
+                        "price": "Rp 25.000",
+                        "description": "Nasi goreng autentik dengan bumbu tradisional"
+                    },
+                    {
+                        "name": "Sate Ayam Madura",
+                        "restaurant": "Sate Raja Madura",
+                        "rating": 4.8,
+                        "price": "Rp 35.000",
+                        "description": "Sate ayam dengan bumbu kacang khas Madura"
+                    }
+                ]
+            },
+            {
+                "category": "Makanan Modern",
+                "items": [
+                    {
+                        "name": "Burger Truffle Wagyu",
+                        "restaurant": "Burger Artisan",
+                        "rating": 4.7,
+                        "price": "Rp 85.000",
+                        "description": "Burger premium dengan daging wagyu dan truffle"
+                    },
+                    {
+                        "name": "Sushi Salmon Roll",
+                        "restaurant": "Sushi Master",
+                        "rating": 4.6,
+                        "price": "Rp 65.000",
+                        "description": "Sushi roll dengan salmon premium"
+                    }
+                ]
+            },
+            {
+                "category": "Street Food",
+                "items": [
+                    {
+                        "name": "Bakso Jumbo Pedas",
+                        "restaurant": "Bakso Bang Jago",
+                        "rating": 4.8,
+                        "price": "Rp 20.000",
+                        "description": "Bakso berukuran jumbo dengan bumbu pedas"
+                    },
+                    {
+                        "name": "Martabak Manis Special",
+                        "restaurant": "Martabak 88",
+                        "rating": 4.7,
+                        "price": "Rp 35.000",
+                        "description": "Martabak manis dengan topping berlimpah"
+                    }
+                ]
+            }
+        ]
+        
+        # Add Categories and Items to Layout
+        for category_index, category in enumerate(categories):
+            # Category Label
+            category_label = QLabel(category['category'])
+            category_label.setStyleSheet("""
+                font-size: 20px;
+                font-weight: bold;
+                color: #9932CC;
+                padding: 15px 0;
+            """)
+            scroll_layout.addWidget(category_label, category_index * 3, 0, 1, 2)
+            
+            # Add Items in the Category
+            for item_index, item in enumerate(category['items']):
+                item_widget = self.create_best_seller_item(item)
+                scroll_layout.addWidget(item_widget, category_index * 3 + 1, item_index)
+        
+        main_layout.addWidget(scroll_area)
+        
+        self.setCentralWidget(main_container)
+    
+    def create_header(self):
+        header = QFrame()
+        header.setStyleSheet("""
+            QFrame {
+                background-color: #9932CC;
+                padding: 20px;
+            }
+        """)
+        
+        header_layout = QHBoxLayout()
+        
+        # Title
+        title = QLabel("Rekomendasi Best Seller")
+        title.setStyleSheet("""
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        """)
+        header_layout.addWidget(title)
+        
+        # Search Button (Placeholder)
+        search_btn = QPushButton("Cari Makanan")
+        search_btn.setStyleSheet("""
+            background-color: white;
+            color: #9932CC;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+        """)
+        header_layout.addWidget(search_btn)
+        
+        header.setLayout(header_layout)
+        return header
+    
+    def create_best_seller_item(self, item):
+        item_widget = QFrame()
+        item_widget.setStyleSheet("""
+            QFrame {
+                background-color: white;
+                border-radius: 10px;
+                padding: 15px;
+                border: 1px solid #E0E0E0;
+                min-width: 250px;
+                max-width: 300px;
+            }
+            QFrame:hover {
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                transform: scale(1.02);
+            }
+        """)
+        
+        layout = QVBoxLayout()
+        
+        # Nama Makanan
+        name_label = QLabel(item['name'])
+        name_label.setStyleSheet("""
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        """)
+        layout.addWidget(name_label)
+        
+        # Restaurant
+        restaurant_label = QLabel(f"Dari: {item['restaurant']}")
+        restaurant_label.setStyleSheet("color: gray;")
+        layout.addWidget(restaurant_label)
+        
+        # Deskripsi
+        description_label = QLabel(item['description'])
+        description_label.setStyleSheet("""
+            font-style: italic;
+            color: #666;
+        """)
+        layout.addWidget(description_label)
+        
+        # Rating dan Harga
+        rating_price_layout = QHBoxLayout()
+        
+        rating_label = QLabel(f"★ {item['rating']}")
+        rating_label.setStyleSheet("""
+            color: gold;
+            font-weight: bold;
+        """)
+        rating_price_layout.addWidget(rating_label)
+        
+        price_label = QLabel(item['price'])
+        price_label.setStyleSheet("""
+            color: #9932CC;
+            font-weight: bold;
+        """)
+        rating_price_layout.addWidget(price_label)
+        
+        layout.addLayout(rating_price_layout)
+        
+        # Tombol Pesan
+        order_btn = QPushButton("Pesan Sekarang")
+        order_btn.setStyleSheet("""
+            background-color: #9932CC;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+        """)
+        layout.addWidget(order_btn)
+        
+        item_widget.setLayout(layout)
+        return item_widget
+
+def main():
+    app = QApplication(sys.argv)
+    window = BestSellerRecommendationPage()
+    window.show()
+    sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()
