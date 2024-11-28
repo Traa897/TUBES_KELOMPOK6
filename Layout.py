@@ -27,6 +27,14 @@ class RestaurantItem(RoundedWidget):
 
         layout = QVBoxLayout()
 
+        # Tambahkan efek bayangan pada widget
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(10)
+        shadow.setXOffset(4)
+        shadow.setYOffset(4)
+        shadow.setColor(QColor(0, 0, 0, 80))  # Warna hitam transparan
+        self.setGraphicsEffect(shadow)
+
         # Restaurant Image (Placeholder)
         self.image_label = QLabel("Image Placeholder")
         self.image_label.setFixedSize(250, 150)
@@ -141,7 +149,7 @@ class RestaurantItem(RoundedWidget):
         self.setStyleSheet("""
             background-color: white;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            /* Removed the box-shadow property here */
         """)
 
     def add_to_favorites(self):
@@ -266,7 +274,7 @@ class FoodDeliveryApp(QMainWindow):
         main_layout.addWidget(favorite_meals_container, 1)
 
     def show_filter_dialog(self):
-        dialog = QDialog(self)
+        dialog = QDialog(self)  
         dialog.setWindowTitle("Filter Restoran")
         layout = QVBoxLayout()
 
