@@ -1,194 +1,180 @@
 import sys
+import random
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
-    QMessageBox, QTableWidget, QTableWidgetItem, QTabWidget, QGridLayout, QScrollArea
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
+    QPushButton, QMessageBox, QTableWidget, QTableWidgetItem, QTabWidget, 
+    QGridLayout, QScrollArea, QLineEdit, QFrame, QDialog, QRadioButton, QButtonGroup
 )
-from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont, QPixmap, QPainter, QColor, QPen
+from PyQt5.QtCore import Qt, QSize, QRect
 
-class FoodDeliveryApp(QWidget):
+class RoundedWidget(QWidget):
+    def __init__(self, color=Qt.white, radius=10, parent=None):
+        super().__init__(parent)
+        self.color = color
+        self.radius = radius
+        self.setStyleSheet("background-color: transparent;")
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setBrush(QColor(self.color))
+        painter.setPen(Qt.NoPen)
+        painter.drawRoundedRect(0, 0, self.width(), self.height(), self.radius, self.radius)
+
+class RestaurantItem(RoundedWidget):
+    def __init__(self, restaurant_data, parent=None):
+        super().__init__(parent=parent)
+        self.restaurant_data = restaurant_data
+        layout = QVBoxLayout()
+
+        # Restaurant Image (Placeholder)
+        self.image_label = QLabel()
+        self.image_label.setFixedSize(250, 150)
+        self.image_label.setStyleSheet("""
+            background-color: #E0E0E0;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        """)
+
+        # Restaurant Details
+        name_label = QLabel(restaurant_data['name'])
+        name_label.setStyleSheet("font-weight: bold; font-size: 16px;")
+
+        details_label = QLabel(f"{restaurant_data['cuisine']} • {restaurant_data['distance']} km")
+        details_label.setStyleSheet("color: gray;")
+
+        rating_label = QLabel(f"★ {restaurant_data['rating']}")
+        rating_label.setStyleSheet("color: orange;")
+
+        layout.addWidget(self.image_label)
+        layout.addWidget(name_label)
+        layout.addWidget(details_label)
+        layout.addWidget(rating_label)
+
+        self.setLayout(layout)
+        self.setStyleSheet("""
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        """)
+
+class FoodDeliveryApp(QMainWindow):
     def __init__(self):
         super().__init__()
-
-        self.cart = {}
-        self.menu_items = [
-            {"name": "Nasi Goreng", "price": 25000, "desc": "Nasi goreng dengan telur spesial", "category": "Makanan Utama"},
-            {"name": "Mie Ayam", "price": 20000, "desc": "Mie ayam kuah spesial", "category": "Makanan Utama"},
-            {"name": "Sate Ayam", "price": 30000, "desc": "Sate ayam dengan bumbu kacang", "category": "Makanan Pendamping"},
-            {"name": "Rendang", "price": 35000, "desc": "Rendang daging sapi empuk", "category": "Makanan Utama"},
-            {"name": "Burger", "price": 40000, "desc": "Burger dengan daging premium", "category": "Fast Food"},
-            {"name": "Es Teh", "price": 5000, "desc": "Es teh manis segar", "category": "Minuman"},
-            {"name": "Jus Jeruk", "price": 15000, "desc": "Jus jeruk segar tanpa gula tambahan", "category": "Minuman"}
-        ]
-
-        self.setWindowTitle("Kaciw Food Delivery")
-        self.setGeometry(100, 100, 800, 600)
+        self.setWindowTitle("Kaciw FooD")
+        self.setGeometry(100, 100, 1000, 800)
+        
+        # Sophisticated color palette
         self.setStyleSheet("""
-            QWidget { background-color: #f4f4f4; }
+            QMainWindow { background-color: #F5F5F5; }
             QPushButton { 
-                background-color: #9932CC; 
+                background-color:#9932CC; 
                 color: white; 
-                padding: 7px; 
-                border-radius: 5px; 
+                border-radius: 5px;
+                padding: 8px;
             }
             QPushButton:hover { 
                 background-color: #9932CC; 
             }
         """)
 
-        # Layout Utama
-        main_layout = QVBoxLayout()
-        self.tab_widget = QTabWidget()
+        # Central Widget
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        main_layout = QVBoxLayout(central_widget)
 
-        # Tab Menu
-        menu_tab = QWidget()
-        menu_layout = QVBoxLayout()
+        # Search and Filter Section
+        search_layout = QHBoxLayout()
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Cari restoran atau makanan...")
+        self.search_input.setStyleSheet("""
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 8px;
+            font-size: 14px;
+        """)
+        search_layout.addWidget(self.search_input)
 
-        # Tombol Kategori
-        category_layout = QHBoxLayout()
-        categories = ["Semua", "Makanan Utama", "Makanan Pendamping", "Fast Food", "Minuman"]
-        self.category_buttons = {}
-        
-        for category in categories:
-            btn = QPushButton(category)
-            btn.setFixedHeight(30)
-            btn.clicked.connect(lambda checked, cat=category: self.filter_menu(cat))
-            category_layout.addWidget(btn)
-            self.category_buttons[category] = btn
+        filter_btn = QPushButton("Filter")
+        filter_btn.clicked.connect(self.show_filter_dialog)
+        search_layout.addWidget(filter_btn)
 
-        menu_layout.addLayout(category_layout)
+        main_layout.addLayout(search_layout)
 
-        # Scroll Area untuk Grid Makanan
-        self.scroll_area = QScrollArea()
-        self.scroll_area.setWidgetResizable(True)
-        self.food_grid_widget = QWidget()
-        self.food_grid = QGridLayout(self.food_grid_widget)
-        self.scroll_area.setWidget(self.food_grid_widget)
-        self.populate_food_grid()
-        menu_layout.addWidget(self.scroll_area)
-        menu_tab.setLayout(menu_layout)
+        # Restaurants Section
+        restaurants_scroll = QScrollArea()
+        restaurants_widget = QWidget()
+        restaurants_grid = QGridLayout(restaurants_widget)
+        restaurants_scroll.setWidget(restaurants_widget)
+        restaurants_scroll.setWidgetResizable(True)
 
-        # Tab Keranjang
-        cart_tab = QWidget()
-        cart_layout = QVBoxLayout()
-        self.cart_table = QTableWidget()
-        self.cart_table.setColumnCount(4)
-        self.cart_table.setHorizontalHeaderLabels(["Nama", "Harga", "Jumlah", "Total"])
-        cart_layout.addWidget(self.cart_table)
-        self.cart_total_label = QLabel("Total: Rp 0")
-        self.cart_total_label.setFont(QFont("Arial", 14, QFont.Bold))
-        cart_layout.addWidget(self.cart_total_label)
-        clear_cart_btn = QPushButton("Kosongkan Keranjang")
-        clear_cart_btn.clicked.connect(self.clear_cart)
-        cart_layout.addWidget(clear_cart_btn)
-        cart_tab.setLayout(cart_layout)
-
-        # Tambahkan Tab
-        self.tab_widget.addTab(menu_tab, "Menu")
-        self.tab_widget.addTab(cart_tab, "Keranjang")
-        main_layout.addWidget(self.tab_widget)
-        self.setLayout(main_layout)
-
-    def populate_food_grid(self, filtered_indices=None):
-        # Bersihkan grid sebelumnya
-        for i in reversed(range(self.food_grid.count())): 
-            self.food_grid.itemAt(i).widget().setParent(None)
-
-        # Gunakan semua indeks jika tidak ada filter
-        if filtered_indices is None:
-            filtered_indices = range(len(self.menu_items))
+        # Sample Restaurant Data
+        restaurants = [
+            {"name": "Nasi Padang bulan", "cuisine": "kilo 50", "distance": 1.2, "rating": 4.5},
+            {"name": "Eagan gado gado", "cuisine": "kampung baru", "distance": 2.5, "rating": 4.8},
+            {"name": "Austin Kebab", "cuisine": "Bangun Reksa", "distance": 0.8, "rating": 4.2},
+            {"name": "Mie Ayam", "cuisine": "Rapak", "distance": 3.0, "rating": 4.6},
+        ]
 
         row, col = 0, 0
-        for idx in filtered_indices:
-            # Widget untuk setiap item makanan
-            food_widget = QWidget()
-            food_layout = QVBoxLayout()
-            food_layout.setSpacing(5)
-
-            # Label nama
-            name_label = QLabel(self.menu_items[idx]["name"])
-            name_label.setFont(QFont("Arial", 12, QFont.Bold))
-            food_layout.addWidget(name_label)
-
-            # Label harga
-            price_label = QLabel(f"Rp {self.menu_items[idx]['price']:,}")
-            price_label.setFont(QFont("Arial", 10))
-            food_layout.addWidget(price_label)
-
-            # Label deskripsi
-            desc_label = QLabel(self.menu_items[idx]["desc"])
-            desc_label.setWordWrap(True)
-            desc_label.setStyleSheet("color: gray; font-size: 10pt;")
-            food_layout.addWidget(desc_label)
-
-            # Tombol tambah ke keranjang
-            add_btn = QPushButton("Tambah")
-            add_btn.clicked.connect(lambda checked, i=idx: self.add_to_cart(i))
-            food_layout.addWidget(add_btn)
-
-            food_widget.setLayout(food_layout)
-            food_widget.setStyleSheet("""
-                QWidget { 
-                    background-color: white; 
-                    border: 1px solid #ddd; 
-                    border-radius: 5px; 
-                    padding: 10px; 
-                }
-            """)
-
-            self.food_grid.addWidget(food_widget, row, col)
-            
+        for restaurant in restaurants:
+            restaurant_item = RestaurantItem(restaurant)
+            restaurants_grid.addWidget(restaurant_item, row, col)
             col += 1
-            if col > 2:  # 3 kolom
+            if col > 2:
                 col = 0
                 row += 1
 
-    def filter_menu(self, category):
-        # Sorot tombol kategori yang dipilih
-        for btn in self.category_buttons.values():
-            btn.setStyleSheet("background-color: #9932CC; color: white;")
-        if category in self.category_buttons:
-            self.category_buttons[category].setStyleSheet("background-color:#9932CC; color: white;")
+        main_layout.addWidget(restaurants_scroll)
 
-        # Filter menu
-        if category == "Semua":
-            filtered_indices = range(len(self.menu_items))
-        else:
-            filtered_indices = [i for i, item in enumerate(self.menu_items) if item["category"] == category]
+    def show_filter_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Filter Restoran")
+        layout = QVBoxLayout()
 
-        # Perbarui grid dengan menu terfilter
-        self.populate_food_grid(filtered_indices)
+        # Kategori Filter
+        kategori_group = QButtonGroup()
+        kategori_label = QLabel("Kategori Makanan:")
+        kategori_options = ["Semua", "kilo 50", "", "Fast Food", "Vegetarian"]
+        
+        for option in kategori_options:
+            radio = QRadioButton(option)
+            kategori_group.addButton(radio)
+            layout.addWidget(radio)
 
-    def add_to_cart(self, index):
-        item = self.menu_items[index]
-        if item["name"] in self.cart:
-            self.cart[item["name"]]["quantity"] += 1
-        else:
-            self.cart[item["name"]] = {"price": item["price"], "quantity": 1}
-        self.update_cart_table()
-        QMessageBox.information(self, "Keranjang", f"{item['name']} ditambahkan ke keranjang!")
+        # Jarak Filter
+        jarak_group = QButtonGroup()
+        jarak_label = QLabel("Jarak Maksimum:")
+        jarak_options = ["< 5 km", "25 km", "> 50km"]
+        
+        for option in jarak_options:
+            radio = QRadioButton(option)
+            jarak_group.addButton(radio)
+            layout.addWidget(radio)
 
-    def update_cart_table(self):
-        self.cart_table.setRowCount(0)
-        total = 0
-        for name, data in self.cart.items():
-            row = self.cart_table.rowCount()
-            self.cart_table.insertRow(row)
-            self.cart_table.setItem(row, 0, QTableWidgetItem(name))
-            self.cart_table.setItem(row, 1, QTableWidgetItem(f"Rp {data['price']:,}"))
-            self.cart_table.setItem(row, 2, QTableWidgetItem(str(data["quantity"])))
-            total_item = data["price"] * data["quantity"]
-            self.cart_table.setItem(row, 3, QTableWidgetItem(f"Rp {total_item:,}"))
-            total += total_item
-        self.cart_total_label.setText(f"Total: Rp {total:,}")
+        # Rating Filter
+        rating_group = QButtonGroup()
+        rating_label = QLabel("Rating Minimal:")
+        rating_options = ["★ 3.5", "★ 4.0", "★ 4.5"]
+        
+        for option in rating_options:
+            radio = QRadioButton(option)
+            rating_group.addButton(radio)
+            layout.addWidget(radio)
 
-    def clear_cart(self):
-        self.cart.clear()
-        self.update_cart_table()
-        QMessageBox.information(self, "Keranjang", "Keranjang telah dikosongkan!")
+        apply_btn = QPushButton("Terapkan Filter")
+        apply_btn.clicked.connect(dialog.accept)
+        layout.addWidget(apply_btn)
 
-if __name__ == "__main__":
+        dialog.setLayout(layout)
+        dialog.exec_()
+
+def main():
     app = QApplication(sys.argv)
     window = FoodDeliveryApp()
     window.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()
