@@ -1,9 +1,10 @@
-import sys
+ import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-    QPushButton, QLineEdit, QScrollArea, QGridLayout, QDialog, QRadioButton, QButtonGroup
+    QPushButton, QLineEdit, QScrollArea, QGridLayout, QDialog, QRadioButton, QButtonGroup, 
+    QComboBox, QListWidget, QListWidgetItem
 )
-from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QFont
 from PyQt5.QtCore import Qt
 
 
@@ -23,10 +24,11 @@ class RoundedWidget(QWidget):
 
 
 class RestaurantItem(RoundedWidget):
-    def __init__(self, restaurant_data, parent=None):
+    def __init__(self, restaurant_data, favorite_meals_list, parent=None):
         super().__init__(parent=parent)
         self.restaurant_data = restaurant_data
-        self.comments = []  # Menyimpan komentar pengguna
+        self.favorite_meals_list = favorite_meals_list
+        self.comments = []
 
         layout = QVBoxLayout()
 
@@ -55,8 +57,57 @@ class RestaurantItem(RoundedWidget):
         layout.addWidget(details_label)
         layout.addWidget(rating_label)
 
+        # Favorite Meals Rating Section
+        rating_layout = QVBoxLayout()
+        rating_title = QLabel("Rating Makanan Favorit")
+        rating_title.setStyleSheet("font-weight: bold; font-size: 14px;")
+        rating_layout.addWidget(rating_title)
+
+        # Meal Selection Dropdown
+        meal_layout = QHBoxLayout()
+        self.meal_dropdown = QComboBox()
+        self.meal_dropdown.addItems([
+            "Pilih Makanan", 
+            "Nasi Goreng", 
+            "Sate", 
+            "Bakso", 
+            "Gado-gado", 
+            "Mie Ayam"
+        ])
+        meal_layout.addWidget(self.meal_dropdown)
+
+        # Rating Dropdown
+        self.rating_dropdown = QComboBox()
+        self.rating_dropdown.addItems([
+            "Rating", 
+            "★", 
+            "★★", 
+            "★★★", 
+            "★★★★", 
+            "★★★★★"
+        ])
+        meal_layout.addWidget(self.rating_dropdown)
+
+        # Add to Favorites Button
+        self.add_favorite_btn = QPushButton("Tambah Favorit")
+        self.add_favorite_btn.setStyleSheet("""
+            background-color: #9932CC;
+            color: white;
+            border-radius: 5px;
+            padding: 5px;
+        """)
+        self.add_favorite_btn.clicked.connect(self.add_to_favorites)
+        meal_layout.addWidget(self.add_favorite_btn)
+
+        rating_layout.addLayout(meal_layout)
+
+        layout.addLayout(rating_layout)
+
         # Comment Section
         comment_layout = QVBoxLayout()
+        comment_title = QLabel("Komentar")
+        comment_title.setStyleSheet("font-weight: bold; font-size: 14px;")
+        comment_layout.addWidget(comment_title)
 
         self.comment_input = QLineEdit()
         self.comment_input.setPlaceholderText("Tambahkan komentar...")
@@ -98,6 +149,24 @@ class RestaurantItem(RoundedWidget):
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         """)
 
+    def add_to_favorites(self):
+        meal = self.meal_dropdown.currentText()
+        rating = self.rating_dropdown.currentText()
+        
+        if meal != "Pilih Makanan" and rating != "Rating":
+            # Format: "Restaurant Name - Meal (Rating)"
+            favorite_entry = f"{self.restaurant_data['name']} - {meal} ({rating})"
+            
+            # Check if the item already exists to prevent duplicates
+            existing_items = [self.favorite_meals_list.item(i).text() for i in range(self.favorite_meals_list.count())]
+            if favorite_entry not in existing_items:
+                item = QListWidgetItem(favorite_entry)
+                self.favorite_meals_list.addItem(item)
+
+            # Reset dropdowns
+            self.meal_dropdown.setCurrentIndex(0)
+            self.rating_dropdown.setCurrentIndex(0)
+
     def add_comment(self):
         comment_text = self.comment_input.text().strip()
         if comment_text:
@@ -113,7 +182,7 @@ class FoodDeliveryApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Kaciw FooD")
-        self.setGeometry(100, 100, 1000, 800)
+        self.setGeometry(100, 100, 1200, 800)
         
         self.setStyleSheet("""
             QMainWindow { background-color: #F5F5F5; }
@@ -131,7 +200,11 @@ class FoodDeliveryApp(QMainWindow):
         # Central Widget
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        main_layout = QVBoxLayout(central_widget)
+        main_layout = QHBoxLayout(central_widget)
+
+        # Left Side: Restaurants
+        restaurants_container = QWidget()
+        restaurants_layout = QVBoxLayout(restaurants_container)
 
         # Search and Filter Section
         search_layout = QHBoxLayout()
@@ -149,7 +222,7 @@ class FoodDeliveryApp(QMainWindow):
         filter_btn.clicked.connect(self.show_filter_dialog)
         search_layout.addWidget(filter_btn)
 
-        main_layout.addLayout(search_layout)
+        restaurants_layout.addLayout(search_layout)
 
         # Restaurants Section
         restaurants_scroll = QScrollArea()
@@ -157,6 +230,22 @@ class FoodDeliveryApp(QMainWindow):
         restaurants_grid = QGridLayout(restaurants_widget)
         restaurants_scroll.setWidget(restaurants_widget)
         restaurants_scroll.setWidgetResizable(True)
+
+        # Favorite Meals List
+        favorite_meals_container = QWidget()
+        favorite_meals_layout = QVBoxLayout(favorite_meals_container)
+        favorite_meals_title = QLabel("Makanan Favorit")
+        favorite_meals_title.setStyleSheet("font-weight: bold; font-size: 16px;")
+        favorite_meals_layout.addWidget(favorite_meals_title)
+
+        self.favorite_meals_list = QListWidget()
+        self.favorite_meals_list.setStyleSheet("""
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 5px;
+        """)
+        favorite_meals_layout.addWidget(self.favorite_meals_list)
 
         # Sample Restaurant Data
         restaurants = [
@@ -168,14 +257,18 @@ class FoodDeliveryApp(QMainWindow):
 
         row, col = 0, 0
         for restaurant in restaurants:
-            restaurant_item = RestaurantItem(restaurant)
+            restaurant_item = RestaurantItem(restaurant, self.favorite_meals_list)
             restaurants_grid.addWidget(restaurant_item, row, col)
             col += 1
             if col > 2:
                 col = 0
                 row += 1
 
-        main_layout.addWidget(restaurants_scroll)
+        restaurants_layout.addWidget(restaurants_scroll)
+
+        # Main Layout
+        main_layout.addWidget(restaurants_container, 3)
+        main_layout.addWidget(favorite_meals_container, 1)
 
     def show_filter_dialog(self):
         dialog = QDialog(self)
