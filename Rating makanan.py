@@ -33,7 +33,7 @@ class RestaurantItem(RoundedWidget):
         layout = QVBoxLayout()
 
         # Restaurant Image (Placeholder)
-        self.image_label = QLabel("Image Placeholder")
+        self.image_label = QLabel("Project/Nasi Padang.jpg")
         self.image_label.setFixedSize(250, 150)
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.setStyleSheet("""
@@ -144,9 +144,9 @@ class RestaurantItem(RoundedWidget):
         layout.addLayout(comment_layout)
         self.setLayout(layout)
         self.setStyleSheet("""
-            background-color: white;
+              background-color: white;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            /* Removed the box-shadow property here */
         """)
 
     def add_to_favorites(self):
