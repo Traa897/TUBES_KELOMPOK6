@@ -1,14 +1,108 @@
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
-    QLabel, QPushButton, QScrollArea, QGridLayout, QFrame
+    QLabel, QPushButton, QScrollArea, QGridLayout, QFrame,
+    QDialog, QRadioButton, QButtonGroup, QMessageBox
 )
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
 
+class ShoppingCart:
+    def __init__(self):
+        self.items = []
+        
+    def add_item(self, item):
+        self.items.append(item)
+        
+    def get_total(self):
+        total = 0
+        for item in self.items:
+            # Convert price string "Rp XX.XXX" to integer
+            price = int(item['price'].replace('Rp ', '').replace('.', ''))
+            total += price
+        return total
+    
+    def clear(self):
+        self.items = []
+
+class CartDialog(QDialog):
+    def __init__(self, cart, parent=None):
+        super().__init__(parent)
+        self.cart = cart
+        self.setWindowTitle("Keranjang Belanja")
+        self.setGeometry(200, 200, 400, 500)
+        self.setup_ui()
+        
+    def setup_ui(self):
+        layout = QVBoxLayout()
+        
+        # Display cart items
+        for item in self.cart.items:
+            item_widget = QFrame()
+            item_layout = QVBoxLayout()
+            
+            name_label = QLabel(f"{item['name']}")
+            restaurant_label = QLabel(f"Dari: {item['restaurant']}")
+            price_label = QLabel(item['price'])
+            
+            item_layout.addWidget(name_label)
+            item_layout.addWidget(restaurant_label)
+            item_layout.addWidget(price_label)
+            
+            item_widget.setLayout(item_layout)
+            item_widget.setStyleSheet("border: 1px solid #E0E0E0; padding: 10px; margin: 5px;")
+            layout.addWidget(item_widget)
+        
+        # Display total
+        total = self.cart.get_total()
+        total_label = QLabel(f"Total: Rp {total:,}")
+        total_label.setStyleSheet("font-size: 18px; font-weight: bold; margin: 10px;")
+        layout.addWidget(total_label)
+        
+        # Payment options
+        payment_group = QButtonGroup(self)
+        transfer_radio = QRadioButton("Transfer Bank")
+        cod_radio = QRadioButton("Cash on Delivery (COD)")
+        payment_group.addButton(transfer_radio)
+        payment_group.addButton(cod_radio)
+        
+        layout.addWidget(QLabel("Pilih Metode Pembayaran:"))
+        layout.addWidget(transfer_radio)
+        layout.addWidget(cod_radio)
+        
+        # Checkout button
+        checkout_btn = QPushButton("Bayar Sekarang")
+        checkout_btn.setStyleSheet("""
+            background-color: #9932CC;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        """)
+        checkout_btn.clicked.connect(lambda: self.process_payment(payment_group))
+        layout.addWidget(checkout_btn)
+        
+        self.setLayout(layout)
+    
+    def process_payment(self, payment_group):
+        selected_button = payment_group.checkedButton()
+        if not selected_button:
+            QMessageBox.warning(self, "Peringatan", "Silakan pilih metode pembayaran!")
+            return
+            
+        payment_method = selected_button.text()
+        msg = QMessageBox()
+        msg.setWindowTitle("Pembayaran Berhasil")
+        msg.setText(f"Pembayaran via {payment_method} berhasil!\nTerima kasih telah berbelanja.")
+        msg.setIcon(QMessageBox.Information)
+        msg.exec_()
+        
+        self.cart.clear()
+        self.accept()
+
 class BestSellerRecommendationPage(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.cart = ShoppingCart()
         self.setWindowTitle("Rekomendasi Best Seller Makanan")
         self.setGeometry(100, 100, 1200, 800)
         
@@ -90,7 +184,6 @@ class BestSellerRecommendationPage(QMainWindow):
         
         # Add Categories and Items to Layout
         for category_index, category in enumerate(categories):
-            # Category Label
             category_label = QLabel(category['category'])
             category_label.setStyleSheet("""
                 font-size: 20px;
@@ -100,12 +193,23 @@ class BestSellerRecommendationPage(QMainWindow):
             """)
             scroll_layout.addWidget(category_label, category_index * 3, 0, 1, 2)
             
-            # Add Items in the Category
             for item_index, item in enumerate(category['items']):
                 item_widget = self.create_best_seller_item(item)
                 scroll_layout.addWidget(item_widget, category_index * 3 + 1, item_index)
         
         main_layout.addWidget(scroll_area)
+        
+        # Cart Button
+        self.cart_btn = QPushButton("Lihat Keranjang (0)")
+        self.cart_btn.setStyleSheet("""
+            background-color: #9932CC;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px;
+        """)
+        self.cart_btn.clicked.connect(self.show_cart)
+        main_layout.addWidget(self.cart_btn)
         
         self.setCentralWidget(main_container)
     
@@ -120,7 +224,6 @@ class BestSellerRecommendationPage(QMainWindow):
         
         header_layout = QHBoxLayout()
         
-        # Title
         title = QLabel("Rekomendasi Best Seller")
         title.setStyleSheet("""
             color: white;
@@ -129,7 +232,6 @@ class BestSellerRecommendationPage(QMainWindow):
         """)
         header_layout.addWidget(title)
         
-        # Search Button (Placeholder)
         search_btn = QPushButton("Cari Makanan")
         search_btn.setStyleSheet("""
             background-color: white;
@@ -162,7 +264,6 @@ class BestSellerRecommendationPage(QMainWindow):
         
         layout = QVBoxLayout()
         
-        # Nama Makanan
         name_label = QLabel(item['name'])
         name_label.setStyleSheet("""
             font-size: 18px;
@@ -171,12 +272,10 @@ class BestSellerRecommendationPage(QMainWindow):
         """)
         layout.addWidget(name_label)
         
-        # Restaurant
         restaurant_label = QLabel(f"Dari: {item['restaurant']}")
         restaurant_label.setStyleSheet("color: gray;")
         layout.addWidget(restaurant_label)
         
-        # Deskripsi
         description_label = QLabel(item['description'])
         description_label.setStyleSheet("""
             font-style: italic;
@@ -184,7 +283,6 @@ class BestSellerRecommendationPage(QMainWindow):
         """)
         layout.addWidget(description_label)
         
-        # Rating dan Harga
         rating_price_layout = QHBoxLayout()
         
         rating_label = QLabel(f"★ {item['rating']}")
@@ -203,7 +301,6 @@ class BestSellerRecommendationPage(QMainWindow):
         
         layout.addLayout(rating_price_layout)
         
-        # Tombol Pesan
         order_btn = QPushButton("Pesan Sekarang")
         order_btn.setStyleSheet("""
             background-color: #9932CC;
@@ -212,10 +309,25 @@ class BestSellerRecommendationPage(QMainWindow):
             padding: 10px;
             border-radius: 5px;
         """)
+        order_btn.clicked.connect(lambda: self.add_to_cart(item))
         layout.addWidget(order_btn)
         
         item_widget.setLayout(layout)
         return item_widget
+    
+    def add_to_cart(self, item):
+        self.cart.add_item(item)
+        self.cart_btn.setText(f"Lihat Keranjang ({len(self.cart.items)})")
+        QMessageBox.information(self, "Sukses", f"{item['name']} ditambahkan ke keranjang!")
+    
+    def show_cart(self):
+        if not self.cart.items:
+            QMessageBox.information(self, "Keranjang Kosong", "Silakan pilih makanan terlebih dahulu!")
+            return
+            
+        cart_dialog = CartDialog(self.cart, self)
+        if cart_dialog.exec_() == QDialog.Accepted:
+            self.cart_btn.setText("Lihat Keranjang (0)")
 
 def main():
     app = QApplication(sys.argv)
