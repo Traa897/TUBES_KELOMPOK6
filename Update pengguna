@@ -14,10 +14,13 @@ class ShoppingCart:
     def add_item(self, item):
         self.items.append(item)
         
+    def remove_item(self, index):
+        if 0 <= index < len(self.items):
+            self.items.pop(index)
+        
     def get_total(self):
         total = 0
         for item in self.items:
-            # Convert price string "Rp XX.XXX" to integer
             price = int(item['price'].replace('Rp ', '').replace('.', ''))
             total += price
         return total
@@ -29,6 +32,7 @@ class CartDialog(QDialog):
     def __init__(self, cart, parent=None):
         super().__init__(parent)
         self.cart = cart
+        self.parent = parent
         self.setWindowTitle("Keranjang Belanja")
         self.setGeometry(200, 200, 400, 500)
         self.setup_ui()
@@ -37,17 +41,32 @@ class CartDialog(QDialog):
         layout = QVBoxLayout()
         
         # Display cart items
-        for item in self.cart.items:
+        for index, item in enumerate(self.cart.items):
             item_widget = QFrame()
-            item_layout = QVBoxLayout()
+            item_layout = QHBoxLayout()
             
+            # Item details
+            details_layout = QVBoxLayout()
             name_label = QLabel(f"{item['name']}")
             restaurant_label = QLabel(f"Dari: {item['restaurant']}")
             price_label = QLabel(item['price'])
             
-            item_layout.addWidget(name_label)
-            item_layout.addWidget(restaurant_label)
-            item_layout.addWidget(price_label)
+            details_layout.addWidget(name_label)
+            details_layout.addWidget(restaurant_label)
+            details_layout.addWidget(price_label)
+            
+            # Delete button
+            delete_btn = QPushButton("Hapus")
+            delete_btn.setStyleSheet("""
+                background-color: #FF4444;
+                color: white;
+                padding: 5px;
+                border-radius: 3px;
+            """)
+            delete_btn.clicked.connect(lambda checked, idx=index: self.delete_item(idx))
+            
+            item_layout.addLayout(details_layout)
+            item_layout.addWidget(delete_btn)
             
             item_widget.setLayout(item_layout)
             item_widget.setStyleSheet("border: 1px solid #E0E0E0; padding: 10px; margin: 5px;")
@@ -82,6 +101,13 @@ class CartDialog(QDialog):
         layout.addWidget(checkout_btn)
         
         self.setLayout(layout)
+    
+    def delete_item(self, index):
+        self.cart.remove_item(index)
+        self.parent.cart_btn.setText(f"Lihat Keranjang ({len(self.cart.items)})")
+        self.close()
+        if self.cart.items:
+            CartDialog(self.cart, self.parent).exec_()
     
     def process_payment(self, payment_group):
         selected_button = payment_group.checkedButton()
