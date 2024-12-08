@@ -1,30 +1,37 @@
 import sys
+import os
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+data_file = "data_login.txt"
 
 class UserManager:
-    users = [
-        {"username": "admin", "password": "password",}
-    ]
+    @staticmethod
+    def load_users():
+        if not os.path.exists(data_file):
+            return []
+        with open(data_file, "r") as file:
+            lines = file.readlines()
+        return [{"username": line.split(",")[0], "password": line.split(",")[1].strip()} for line in lines]
+
+    @staticmethod
+    def save_user(username, password):
+        with open(data_file, "a") as file:
+            file.write(f"{username},{password}\n")
 
     @classmethod
-    def add_user(cls, username, password,):
-        if any(user['username'] == username for user in cls.users):
+    def add_user(cls, username, password):
+        users = cls.load_users()
+        if any(user['username'] == username for user in users):
             return False
-        
-        cls.users.append({
-            "username": username,
-            "password": password,
-        })
+        cls.save_user(username, password)
         return True
 
     @classmethod
     def validate_login(cls, username, password):
-        return any(
-            user['username'] == username and user['password'] == password 
-            for user in cls.users
-        )
+        users = cls.load_users()
+        return any(user['username'] == username and user['password'] == password for user in users)
+
 
 class RegistrationDialog(QDialog):
     def __init__(self, parent=None):
@@ -214,7 +221,7 @@ class LoginApp(QWidget):
         registration_dialog = RegistrationDialog(self)
         registration_dialog.exec_()
 
-
+        
 class CartItem:
     def __init__(self, name, price, quantity=1):
         self.name = name
