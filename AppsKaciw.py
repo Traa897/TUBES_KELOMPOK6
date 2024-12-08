@@ -214,10 +214,6 @@ class LoginApp(QWidget):
         registration_dialog = RegistrationDialog(self)
         registration_dialog.exec_()
 
-import sys
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-
 
 class CartItem:
     def __init__(self, name, price, quantity=1):
