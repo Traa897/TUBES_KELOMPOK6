@@ -214,6 +214,11 @@ class LoginApp(QWidget):
         registration_dialog = RegistrationDialog(self)
         registration_dialog.exec_()
 
+import sys
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+
+
 class CartItem:
     def __init__(self, name, price, quantity=1):
         self.name = name
@@ -240,13 +245,25 @@ class CartDialog(QDialog):
         self.order_list = QListWidget()
         layout.addWidget(self.order_list)
 
+        btn_layout = QHBoxLayout()
+
+        remove_btn = QPushButton("Hapus Item")
+        remove_btn.clicked.connect(self.remove_item)
+        btn_layout.addWidget(remove_btn)
+
+        layout.addLayout(btn_layout)
+
         self.total_label = QLabel("Total: Rp 0")
         self.total_label.setStyleSheet("font-weight: bold; font-size: 18px;")
         layout.addWidget(self.total_label)
 
-        order_btn = QPushButton("Proses Pesanan")
+        order_btn = QPushButton("Check Out")
         order_btn.clicked.connect(self.process_order)
         layout.addWidget(order_btn)
+
+        edit_quantity_btn = QPushButton("Perbarui jumlah item")
+        edit_quantity_btn.clicked.connect(self.edit_item_quantity)
+        layout.addWidget(edit_quantity_btn)
 
         self.setLayout(layout)
         self.update_cart()
@@ -261,6 +278,61 @@ class CartDialog(QDialog):
             total += item.total_price
 
         self.total_label.setText(f"Total: Rp {total:,}")
+
+    def remove_item(self):
+        current_item = self.order_list.currentItem()
+        
+        if not current_item:
+            QMessageBox.warning(self, "Hapus Item", "Pilih Item yang akan Dihapus")
+            return
+
+        index = self.order_list.row(current_item)
+
+        del self.cart_items[index]
+    
+        self.update_cart()
+
+    def reset_cart(self):
+        reply = QMessageBox.question(
+            self,
+            "Reset Isi Keranjang"
+            "Apakah Anda yakin ingin mengosongkan keranjang?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+
+        if reply == QMessageBox.Yes:
+            self.cart_items.clear()
+            self.update_cart()
+
+    def edit_item_quantity(self):
+        
+        current_item = self.order_list.currentItem()
+        
+        if not current_item:
+            QMessageBox.warning(
+                self,
+                "Perbarui jumlah pesanan",
+                "Pilih item yang ingin diperbarui!"    
+            )
+            return
+        
+        index = self.order_list.row(current_item)
+        cart_item = self.cart_items[index]
+
+        quantity, ok = QInputDialog.getInt(
+            self,
+            "Ubah Jumlah",
+            "Masukkan jumlah baru: ",
+            cart_item.quantity,
+            1,
+            100
+        )
+
+        if ok:
+            cart_item.quantity = quantity
+            cart_item.total_price = cart_item.calculate_total_price()
+
+            self.update_cart()
 
     def process_order(self):
         if not self.cart_items:
@@ -308,6 +380,7 @@ class MenuCustomizationDialog(QDialog):
         plus_btn.clicked.connect(self.increase_quantity)
 
         self.quantity_label = QLabel(str(self.quantity))
+        self.quantity_label.setAlignment(Qt.AlignCenter)
 
         quantity_layout.addWidget(minus_btn)
         quantity_layout.addWidget(self.quantity_label)
@@ -362,12 +435,12 @@ class BestSellerRecommendationPage(QMainWindow):
                     {
                         "name": "Nasi Goreng Mbah",
                         "restaurant": "Warung Mbah Austin",
-                        "rating": 4.9,
+                        "rating": 3.9,
                         "price": "Rp 25.000",
-                        "description": "Nasi goreng Gacor dengan sentuhan mbah"
+                        "description": "Nasgor gacor dengan sentuhan mbah"
                     },
                     {
-                        "name": "Sate Ayam Marduro",
+                        "name": "Sate Ayam Maduro",
                         "restaurant": "Sate Raja Madura",
                         "rating": 4.8,
                         "price": "Rp 35.000",
@@ -377,7 +450,7 @@ class BestSellerRecommendationPage(QMainWindow):
                         "name": "Mie Ayam Guacorrr",
                         "restaurant": "Mie Ayam Kusman",
                         "rating": 4.6,
-                        "price": "Rp 65.000",
+                        "price": "Rp 55.000",
                         "description": "Mie Ayam dengan kuah yang sangat enak dan gurih"
                     }
                 ]
@@ -390,7 +463,14 @@ class BestSellerRecommendationPage(QMainWindow):
                         "restaurant": "Austin Kebab gacor",
                         "rating": 4.7,
                         "price": "Rp 85.000",
-                        "description": "Kebab asli Turky Paling enak"
+                        "description": "Kebab asli Turkey Paling enak"
+                    },
+                    {
+                        "name": "Salad Buah Mama Joice",
+                        "restaurant": "Benedict's Restaurant",
+                        "rating": 5.0,
+                        "price": "Rp 65.000",
+                        "description": "Salad buah untuk menjaga kesehatanmu!"
                     },
                     {
                         "name": "Toast",
@@ -398,7 +478,7 @@ class BestSellerRecommendationPage(QMainWindow):
                         "rating": 4.6,
                         "price": "Rp 80.000",
                         "description": "Dengan rasa yang asli dan enak"
-                    }
+                    },
                 ]
             }
         ]
