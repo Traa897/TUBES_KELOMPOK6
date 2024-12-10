@@ -3,7 +3,7 @@ import os
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-# import PyQt5.UI
+#import PyQt5.UI
 data_file = "data_login.txt"
 
 
@@ -58,12 +58,12 @@ class RegistrationDialog(QDialog):
                 background-color: ;
                 color: white;
                 border: none;
-                padding: 10px;
+                padding: 20px;
                 border-radius: 5px;
                 font-size: 16px;
             }
             QPushButton:hover {
-                background-color: #7a29a3;
+                background-color:  rgb(68, 116, 120);
             }
         """)
 
@@ -73,7 +73,7 @@ class RegistrationDialog(QDialog):
         title_label.setStyleSheet("""
             font-size: 24px;
             font-weight: bold;
-            color: #9932CC;
+            color:  rgb(68, 116, 120);
             margin-bottom: 20px;
         """)
         layout.addWidget(title_label)
@@ -139,7 +139,7 @@ class LoginApp(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('Login Aplikasi')
+        self.setWindowTitle('KaciwFood')
         self.setGeometry(100, 100, 400, 500)
         self.setStyleSheet("""
             QWidget {
@@ -156,7 +156,7 @@ class LoginApp(QWidget):
                 font-size: 14px;
             }
             QPushButton {
-                background-color: #9932CC;
+                background-color:  rgb(68, 116, 120);
                 color: white;
                 border: none;
                 padding: 10px;
@@ -164,7 +164,7 @@ class LoginApp(QWidget):
                 font-size: 16px;
             }
             QPushButton:hover {
-                background-color: #7a29a3;
+                background-color:  rgb(68, 116, 120);
             }
         """)
 
@@ -174,7 +174,7 @@ class LoginApp(QWidget):
         title_label.setStyleSheet("""
             font-size: 24px;
             font-weight: bold;
-            color: #9932CC;
+            color:  rgb(68, 116, 120);
             margin-bottom: 20px;
         """)
         layout.addWidget(title_label)
@@ -201,8 +201,8 @@ class LoginApp(QWidget):
         register_btn = QPushButton('Daftar')
         register_btn.setStyleSheet("""
             background-color: white;
-            color: #9932CC;
-            border: 2px solid #9932CC;
+            color:  rgb(68, 116, 120);
+            border: 2px solid  rgb(68, 116, 120);
         """)
         register_btn.clicked.connect(self.open_registration)
         layout.addWidget(register_btn)
@@ -442,8 +442,8 @@ class BestSellerRecommendationPage(QMainWindow):
                 "category": "Makanan Tradisional",
                 "items": [
                     {
-                        "name": "Nasi Goreng Mbah",
-                        "restaurant": "Warung Mbah Austin",
+                        "name": "Nasi Padang",
+                        "restaurant": "Warung Mbah austin ",
                         "rating": 3.9,
                         "price": "Rp 25.000",
                         "description": "Nasgor gacor dengan sentuhan mbah"
@@ -549,7 +549,7 @@ class BestSellerRecommendationPage(QMainWindow):
 
         price_label = QLabel(item['price'])
         price_label.setStyleSheet("""
-            color: #9932CC;
+            color:  rgb(68, 116, 120);
             font-weight: bold;
         """)
         rating_price_layout.addWidget(price_label)
@@ -558,7 +558,7 @@ class BestSellerRecommendationPage(QMainWindow):
 
         order_btn = QPushButton("Pesan")
         order_btn.setStyleSheet("""
-            background-color: #9932CC;
+            background-color:  rgb(68, 116, 120);
             color: white;
             border: none;
             padding: 10px;
