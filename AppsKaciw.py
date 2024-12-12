@@ -582,7 +582,7 @@ class CartDialog(QDialog):
             return
 
         if not self.transfer_radio.isChecked() and not self.cod_radio.isChecked():
-            QMessageBox.warning(self, "Metode Pembayaran Tidak Terdefinisi", "Pilih metode pembayaran!")
+            QMessageBox.warning(self, "Error", "Pilih metode pembayaran!")
             return
 
         else:
@@ -595,7 +595,6 @@ class CartDialog(QDialog):
 
             if reply == QMessageBox.Yes:
                 
-                # item_checkout = []
                 for item in self.cart_items:
                     item_checkout =     (f"{item.name} x{item.quantity} - Rp {item.total_price:,}")
                     self.parent().history_items.append(item_checkout)
@@ -607,26 +606,137 @@ class CartDialog(QDialog):
                 self.accept()
 
 
+class RatingDialog(QDialog):
+    def __init__(self, item_name, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(f"Rating untuk {item_name}")
+        self.setGeometry(300, 300, 400, 300)
+        
+        layout = QVBoxLayout()
+        
+        item_label = QLabel(f"Item: {item_name}")
+        item_label.setFont(QFont('Arial', 12))
+        layout.addWidget(item_label)
+        
+        
+        rating_layout = QHBoxLayout()
+        self.rating_buttons = []
+        rating_label = QLabel("Rating Makanan:")
+        rating_layout.addWidget(rating_label)
+        
+        for i in range(5, 0, -1):
+            radio_btn = QRadioButton(str(i))
+            radio_btn.setStyleSheet("""
+                QRadioButton { 
+                    color: blue; 
+                    margin-right: 10px;
+                }
+                QRadioButton::indicator { 
+                    width: 20px; 
+                    height: 20px; 
+                }
+                QRadioButton:checked { 
+                    font-weight: bold; 
+                }
+            """)
+            rating_layout.addWidget(radio_btn)
+            self.rating_buttons.append(radio_btn)
+        
+        layout.addLayout(rating_layout)
+        
+        order_comment_label = QLabel("Komentar Pesanan:")
+        layout.addWidget(order_comment_label)
+        
+        self.order_comment_edit = QTextEdit()
+        self.order_comment_edit.setPlaceholderText("Tulis komentar tentang pesanan Anda...")
+        layout.addWidget(self.order_comment_edit)
+        
+        submit_btn = QPushButton("Submit Rating & Komentar")
+        submit_btn.clicked.connect(self.submit_rating)
+        layout.addWidget(submit_btn)
+        
+        self.setLayout(layout)
+        self.rating = None
+        self.order_comment = ""
+    
+    def submit_rating(self):
+        selected_rating = None
+        for btn in self.rating_buttons:
+            if btn.isChecked():
+                selected_rating = int(btn.text())
+                break
+        
+        if selected_rating is None:
+            QMessageBox.warning(self, "Peringatan", "Silakan pilih rating makanan!")
+            return
+        
+        self.rating = selected_rating
+        self.order_comment = self.order_comment_edit.toPlainText()
+        
+        if not self.order_comment:
+            reply = QMessageBox.question(
+                self, 
+                "Konfirmasi", 
+                "Anda belum menulis komentar. Lanjutkan?", 
+                QMessageBox.Yes | QMessageBox.No
+            )
+            if reply == QMessageBox.No:
+                return
+        
+        self.accept()
+
 class HistoryDialog(QDialog):
     def __init__(self, history_items, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Riwayat Pesanan")
-        self.setGeometry(300, 300, 400, 500)
-        self.history_items = history_items
-
+        self.setGeometry(300, 300, 500, 600)
+        
         layout = QVBoxLayout()
+        
         self.history_list = QListWidget()
         layout.addWidget(self.history_list)
-
+        
+        add_rating_btn = QPushButton("Tambah Rating")
+        add_rating_btn.clicked.connect(self.add_rating)
+        layout.addWidget(add_rating_btn)
+        
         self.setLayout(layout)
+        
+        self.history_items = history_items
+
         self.update_history()
     
     def update_history(self):
         self.history_list.clear()
-        for item in self.parent().history_items:
+        for item in self.history_items:
             list_item = QListWidgetItem(item)
+            
             self.history_list.addItem(list_item)
-
+    
+    def add_rating(self):
+        current_item = self.history_list.currentItem()
+        if not current_item:
+            QMessageBox.warning(self, "Peringatan", "Pilih item yang ingin diberi rating")
+            return
+        
+        item_name = current_item.text()
+    
+        rating_dialog = RatingDialog(item_name, self)
+        
+        if rating_dialog.exec_() == QDialog.Accepted:
+            rating_text = (
+                f"{item_name}\n"
+                f"Rating: {'★' * rating_dialog.rating} ({rating_dialog.rating}/5)\n"
+                f"Komentar: {rating_dialog.order_comment}"
+            )
+            
+            current_item.setText(rating_text)
+            
+            QMessageBox.information(
+                self, 
+                "Berhasil", 
+                f"Rating untuk {item_name} telah disimpan!"
+            )
 
 class MenuCustomizationDialog(QDialog):
     def __init__(self, item, parent=None):
