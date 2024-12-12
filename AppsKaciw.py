@@ -741,7 +741,7 @@ class HistoryDialog(QDialog):
 class MenuCustomizationDialog(QDialog):
     def __init__(self, item, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f"Kustomisasi {item['name']}")
+        self.setWindowTitle(f"Pesan {item['name']}")
         self.setGeometry(300, 300, 400, 500)
         self.item = item
         self.quantity = 1
