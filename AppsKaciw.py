@@ -139,7 +139,7 @@ class LoginApp(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('KaciwFood')
+        self.setWindowTitle('Kaciw Food Delivery')
         self.setGeometry(100, 100, 400, 500)
         self.setStyleSheet("""
             QWidget {
@@ -169,7 +169,7 @@ class LoginApp(QWidget):
         """)
 
         layout = QVBoxLayout()
-        title_label = QLabel('KaciwFood')
+        title_label = QLabel('Kaciw Food Delivery')
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setStyleSheet("""
             font-size: 24px;
@@ -231,7 +231,7 @@ class LoginApp(QWidget):
 class BestSellerRecommendationPage(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("KaciwFood")
+        self.setWindowTitle("Kaciw Food Delivery")
         self.setGeometry(100, 100, 1200, 800)   
 
         self.cart_items = []
