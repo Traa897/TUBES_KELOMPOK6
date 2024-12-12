@@ -141,6 +141,7 @@ class LoginApp(QWidget):
     def initUI(self):
         self.setWindowTitle('Kaciw Food Delivery')
         self.setGeometry(100, 100, 400, 500)
+        self.setWindowIcon(QIcon('D:/Cool-Yeah/SEMESTER 1/Algoritma Pemrograman H/CODE/Ikon_Kaciw_Food_Delivery.png'))
         self.setStyleSheet("""
             QWidget {
                 background-color: #f0f0f0;
@@ -222,7 +223,6 @@ class LoginApp(QWidget):
             QMessageBox.warning(self, 'Login Gagal', 'Username atau password salah')
 
 
-
     def open_registration(self):
         registration_dialog = RegistrationDialog(self.user_manager, self)
         registration_dialog.exec_()
@@ -232,7 +232,8 @@ class BestSellerRecommendationPage(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Kaciw Food Delivery")
-        self.setGeometry(100, 100, 1200, 800)   
+        self.setWindowIcon(QIcon('D:/Cool-Yeah/SEMESTER 1/Algoritma Pemrograman H/CODE/Ikon_Kaciw_Food_Delivery.png'))
+        self.setGeometry(100, 100, 1200, 800)
 
         self.cart_items = []
         self.history_items = []
