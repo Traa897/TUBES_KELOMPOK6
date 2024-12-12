@@ -1,8 +1,8 @@
 import sys
 import os
-from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 #import PyQt5.UI
 data_file = "data_login.txt"
 
@@ -32,6 +32,7 @@ class UserManager:
     def validate_login(self, username, password):
         users = self.load_users()
         return any(user['username'] == username and user['password'] == password for user in users)
+
 
 
 class RegistrationDialog(QDialog):
@@ -228,6 +229,261 @@ class LoginApp(QWidget):
         registration_dialog.exec_()
 
 
+class BestSellerRecommendationPage(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("KaciwFood")
+        self.setGeometry(100, 100, 1200, 800)   
+
+        self.cart_items = []
+        
+        # Main container
+        main_container = QWidget()
+        main_layout = QVBoxLayout(main_container)
+
+        # Search input
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Cari makanan...")
+        self.search_input.textChanged.connect(self.filter_items)
+        main_layout.addWidget(self.search_input)
+
+        # Cart and Menu buttons
+        button_layout = QHBoxLayout()
+        cart_btn = QPushButton("\U0001f6d2 Keranjang")  # Shopping Cart emoji
+        cart_btn.clicked.connect(self.show_cart)
+        cart_btn.setStyleSheet("background-color: rgb(68, 116, 120); color: white; border-radius: 5px; padding: 5px;")
+        
+        menu_btn = QPushButton("\u22ee")  # Vertical Ellipsis
+        menu_btn.setStyleSheet("background-color: rgb(68, 116, 120); color: white; border-radius: 5px; padding: 5px;")
+        
+        button_layout.addWidget(cart_btn)
+        button_layout.addWidget(menu_btn)
+        main_layout.addLayout(button_layout)
+
+        # Scroll Area
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        
+        # Scroll Widget
+        scroll_widget = QWidget()
+        self.scroll_layout = QGridLayout(scroll_widget)
+        scroll_area.setWidget(scroll_widget)
+        
+        main_layout.addWidget(scroll_area)
+        
+        # Set central widget
+        self.setCentralWidget(main_container)
+
+        # Categories
+        self.original_categories = [
+            {
+                "category": "Makanan Tradisional",
+                "items": [
+                    {
+                        "name": "Nasi Padang",
+                        "restaurant": "Warung Mbah austin ",
+                        "rating": 3.9,
+                        "price": "Rp 25.000",
+                        "description": "Nasgor gacor dengan sentuhan mbah"
+                    },
+                    {
+                        "name": "Sate Ayam Maduro",
+                        "restaurant": "Sate Raja Madura",
+                        "rating": 4.8,
+                        "price": "Rp 35.000",
+                        "description": "Sate ayam dengan bumbu kacang khas Madura enaknyoooo"
+                    },
+                    {
+                        "name": "Mie Ayam Guacorrr",
+                        "restaurant": "Mie Ayam Kusman",
+                        "rating": 4.6,
+                        "price": "Rp 55.000",
+                        "description": "Mie Ayam dengan kuah yang sangat enak dan gurih"
+                    },
+                ]
+            },
+            {
+                "category": "Makanan Modern",
+                "items": [
+                    {
+                        "name": "Austin Kebab",
+                        "restaurant": "Austin Kebab gacor",
+                        "rating": 4.7,
+                        "price": "Rp 85.000",
+                        "description": "Kebab asli Turkey Paling enak"
+                    },
+                    {
+                        "name": "Salad Buah Mama Joice",
+                        "restaurant": "Benedict's Restaurant",
+                        "rating": 5.0,
+                        "price": "Rp 65.000",
+                        "description": "Salad buah untuk menjaga kesehatanmu!"
+                    },
+                    {
+                        "name": "Toast",
+                        "restaurant": "Restaurant Vera's",
+                        "rating": 4.6,
+                        "price": "Rp 80.000",
+                        "description": "Dengan rasa yang asli dan enak"
+                    },
+                ]
+            }
+        ]
+
+        self.categories = self.original_categories.copy()
+        self.display_categories()
+
+    def create_best_seller_item(self, item):
+        # ... (previously defined method remains the same)
+        item_widget = QFrame()
+        item_widget.setStyleSheet("""
+            QFrame {
+                background-color: white;
+                border-radius: 10px;
+                padding: 15px;
+                border: 1px solid #E0E0E0;
+                min-width: 250px;
+                max-width: 300px;
+            }
+        """)
+
+        layout = QVBoxLayout()
+
+        name_label = QLabel(item['name'])
+        name_label.setStyleSheet("""
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        """)
+        layout.addWidget(name_label)
+
+        restaurant_label = QLabel(f"Dari: {item['restaurant']}")
+        restaurant_label.setStyleSheet("color: gray;")
+        layout.addWidget(restaurant_label)
+
+        description_label = QLabel(item['description'])
+        description_label.setStyleSheet("""
+            font-style: italic;
+            color: #666;
+        """)
+        layout.addWidget(description_label)
+
+        rating_price_layout = QHBoxLayout()
+
+        rating_label = QLabel(f"★ {item['rating']}")
+        rating_label.setStyleSheet("""
+            color: gold;
+            font-weight: bold;
+        """)
+        rating_price_layout.addWidget(rating_label)
+
+        price_label = QLabel(item['price'])
+        price_label.setStyleSheet("""
+            color:  rgb(68, 116, 120);
+            font-weight: bold;
+        """)
+        rating_price_layout.addWidget(price_label)
+
+        layout.addLayout(rating_price_layout)
+
+        order_btn = QPushButton("Pesan")
+        order_btn.setStyleSheet("""
+            background-color:  rgb(68, 116, 120);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+        """)
+        order_btn.clicked.connect(lambda checked, i=item: self.customize_item(i))
+        layout.addWidget(order_btn)
+
+        item_widget.setLayout(layout)
+        return item_widget
+
+    def display_categories(self):
+        # Clear existing layout
+        for i in reversed(range(self.scroll_layout.count())): 
+            widget = self.scroll_layout.itemAt(i).widget()
+            if widget is not None:
+                widget.deleteLater()
+
+        row, col = 0, 0
+        for category in self.categories:
+            if not category['items']:
+                continue
+
+            # Add category label
+            category_label = QLabel(category['category'])
+            category_label.setStyleSheet("font-weight: bold; font-size: 20px; margin-top: 20px;")
+            self.scroll_layout.addWidget(category_label, row, 0, 1, 3)
+            row += 1
+
+            # Add items for this category
+            for item in category['items']:
+                item_widget = self.create_best_seller_item(item)
+                self.scroll_layout.addWidget(item_widget, row, col)
+                col += 1
+                if col > 2:
+                    col = 0
+                    row += 1
+            
+            row += 1
+            col = 0
+
+    def customize_item(self, item):
+        dialog = MenuCustomizationDialog(item, self)
+        quantity = dialog.exec_()
+
+        if quantity > 0:
+            cart_item = CartItem(item['name'], item['price'], quantity)
+            existing_item = next((x for x in self.cart_items if x.name == item['name']), None)
+
+            if existing_item:
+                existing_item.quantity += quantity
+                existing_item.total_price = existing_item.calculate_total_price()
+            else:
+                self.cart_items.append(cart_item)
+
+    def show_cart(self):
+        dialog = CartDialog(self.cart_items, self)
+        dialog.exec_()
+
+    def filter_items(self):
+        query = self.search_input.text().lower()
+        self.categories = [
+            {
+                "category": cat["category"],
+                "items": [
+                    item for item in cat["items"] if query in item["name"].lower()
+                ]
+            }
+            for cat in self.original_categories
+        ]
+        self.display_categories()
+
+    def display_categories(self):
+        for i in reversed(range(self.scroll_layout.count())):
+            self.scroll_layout.itemAt(i).widget().deleteLater()
+
+        row, col = 0, 0
+        for category in self.categories:
+            if not category['items']:
+                continue
+
+            category_label = QLabel(category['category'])
+            category_label.setStyleSheet("font-weight: bold; font-size: 20px;")
+            self.scroll_layout.addWidget(category_label, row, 0, 1, 3)
+            row += 1
+
+            for item in category['items']:
+                item_widget = self.create_best_seller_item(item)
+                self.scroll_layout.addWidget(item_widget, row, col)
+                col += 1
+                if col > 2:
+                    col = 0
+                    row += 1
+            row += 1
+
 class CartItem:
     def __init__(self, name, price, quantity=1):
         self.name = name
@@ -273,6 +529,16 @@ class CartDialog(QDialog):
         edit_quantity_btn = QPushButton("Perbarui jumlah item")
         edit_quantity_btn.clicked.connect(self.edit_item_quantity)
         layout.addWidget(edit_quantity_btn)
+
+        payment_group = QButtonGroup(self)
+        self.transfer_radio = QRadioButton("Transfer Bank")
+        self.cod_radio = QRadioButton("Cash on Delivery (COD)")
+        payment_group.addButton(self.transfer_radio)
+        payment_group.addButton(self.cod_radio)
+        
+        layout.addWidget(QLabel("Pilih Metode Pembayaran:"))
+        layout.addWidget(self.transfer_radio)
+        layout.addWidget(self.cod_radio)
 
         self.setLayout(layout)
         self.update_cart()
@@ -348,18 +614,23 @@ class CartDialog(QDialog):
             QMessageBox.warning(self, "Keranjang Kosong", "Tambahkan item ke keranjang terlebih dahulu.")
             return
 
-        reply = QMessageBox.question(
+        if not self.transfer_radio.isChecked() and not self.cod_radio.isChecked():
+            QMessageBox.warning(self, "Metode Pembayaran Tidak Terdefinisi", "Pilih metode pembayaran!")
+            return
+
+        else:
+            reply = QMessageBox.question(
             self,
             "Konfirmasi Pesanan",
             "Apakah Anda yakin ingin memproses pesanan?",
             QMessageBox.Yes | QMessageBox.No
-        )
+            )
 
-        if reply == QMessageBox.Yes:
-            QMessageBox.information(self, "Pesanan Berhasil", "Terima kasih telah memesan!")
-            self.cart_items.clear()
-            self.update_cart()
-            self.accept()
+            if reply == QMessageBox.Yes:
+                QMessageBox.information(self, "Pesanan Berhasil", "Terima kasih telah memesan!")
+                self.cart_items.clear()
+                self.update_cart()
+                self.accept()
 
 
 class MenuCustomizationDialog(QDialog):
@@ -414,215 +685,6 @@ class MenuCustomizationDialog(QDialog):
 
     def add_to_cart(self):
         self.done(self.quantity)
-
-
-class BestSellerRecommendationPage(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("KaciwFood")
-        self.setGeometry(100, 100, 1200, 800)   
-
-        self.cart_items = []
-        main_container = QWidget()
-        main_layout = QVBoxLayout(main_container)
-
-        self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Cari makanan...")
-        self.search_input.textChanged.connect(self.filter_items)
-        main_layout.addWidget(self.search_input)
-
-        scroll_area = QScrollArea()
-        scroll_widget = QWidget()
-        self.scroll_layout = QGridLayout(scroll_widget)
-        scroll_area.setWidget(scroll_widget)
-        scroll_area.setWidgetResizable(True)
-
-        self.original_categories = [
-            {
-                "category": "Makanan Tradisional",
-                "items": [
-                    {
-                        "name": "Nasi Padang",
-                        "restaurant": "Warung Mbah austin ",
-                        "rating": 3.9,
-                        "price": "Rp 25.000",
-                        "description": "Nasgor gacor dengan sentuhan mbah"
-                    },
-                    {
-                        "name": "Sate Ayam Maduro",
-                        "restaurant": "Sate Raja Madura",
-                        "rating": 4.8,
-                        "price": "Rp 35.000",
-                        "description": "Sate ayam dengan bumbu kacang khas Madura enaknyoooo"
-                    },
-                    {
-                        "name": "Mie Ayam Guacorrr",
-                        "restaurant": "Mie Ayam Kusman",
-                        "rating": 4.6,
-                        "price": "Rp 55.000",
-                        "description": "Mie Ayam dengan kuah yang sangat enak dan gurih"
-                    },
-                   
-
-                ]
-            },
-            {
-                "category": "Makanan Modern",
-                "items": [
-                    {
-                        "name": "Austin Kebab",
-                        "restaurant": "Austin Kebab gacor",
-                        "rating": 4.7,
-                        "price": "Rp 85.000",
-                        "description": "Kebab asli Turkey Paling enak"
-                    },
-                    {
-                        "name": "Salad Buah Mama Joice",
-                        "restaurant": "Benedict's Restaurant",
-                        "rating": 5.0,
-                        "price": "Rp 65.000",
-                        "description": "Salad buah untuk menjaga kesehatanmu!"
-                    },
-                    {
-                        "name": "Toast",
-                        "restaurant": "Restaurant Vera's",
-                        "rating": 4.6,
-                        "price": "Rp 80.000",
-                        "description": "Dengan rasa yang asli dan enak"
-                    },
-                ]
-            }
-        ]
-
-        self.categories = self.original_categories.copy()
-        self.display_categories()
-
-        cart_btn = QPushButton("🛒 Keranjang")
-        cart_btn.clicked.connect(self.show_cart)
-        main_layout.addWidget(cart_btn)
-        main_layout.addWidget(scroll_area)
-
-        self.setCentralWidget(main_container)
-
-    def create_best_seller_item(self, item):
-        item_widget = QFrame()
-        item_widget.setStyleSheet("""
-            QFrame {
-                background-color: white;
-                border-radius: 10px;
-                padding: 15px;
-                border: 1px solid #E0E0E0;
-                min-width: 250px;
-                max-width: 300px;
-            }
-        """)
-
-        layout = QVBoxLayout()
-
-        name_label = QLabel(item['name'])
-        name_label.setStyleSheet("""
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-        """)
-        layout.addWidget(name_label)
-
-        restaurant_label = QLabel(f"Dari: {item['restaurant']}")
-        restaurant_label.setStyleSheet("color: gray;")
-        layout.addWidget(restaurant_label)
-
-        description_label = QLabel(item['description'])
-        description_label.setStyleSheet("""
-            font-style: italic;
-            color: #666;
-        """)
-        layout.addWidget(description_label)
-
-        rating_price_layout = QHBoxLayout()
-
-        rating_label = QLabel(f"★ {item['rating']}")
-        rating_label.setStyleSheet("""
-            color: gold;
-            font-weight: bold;
-        """)
-        rating_price_layout.addWidget(rating_label)
-
-        price_label = QLabel(item['price'])
-        price_label.setStyleSheet("""
-            color:  rgb(68, 116, 120);
-            font-weight: bold;
-        """)
-        rating_price_layout.addWidget(price_label)
-
-        layout.addLayout(rating_price_layout)
-
-        order_btn = QPushButton("Pesan")
-        order_btn.setStyleSheet("""
-            background-color:  rgb(68, 116, 120);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 5px;
-        """)
-        order_btn.clicked.connect(lambda checked, i=item: self.customize_item(i))
-        layout.addWidget(order_btn)
-
-        item_widget.setLayout(layout)
-        return item_widget
-
-    def customize_item(self, item):
-        dialog = MenuCustomizationDialog(item, self)
-        quantity = dialog.exec_()
-
-        if quantity > 0:
-            cart_item = CartItem(item['name'], item['price'], quantity)
-            existing_item = next((x for x in self.cart_items if x.name == item['name']), None)
-
-            if existing_item:
-                existing_item.quantity += quantity
-                existing_item.total_price = existing_item.calculate_total_price()
-            else:
-                self.cart_items.append(cart_item)
-
-    def show_cart(self):
-        dialog = CartDialog(self.cart_items, self)
-        dialog.exec_()
-
-    def filter_items(self):
-        query = self.search_input.text().lower()
-        self.categories = [
-            {
-                "category": cat["category"],
-                "items": [
-                    item for item in cat["items"] if query in item["name"].lower()
-                ]
-            }
-            for cat in self.original_categories
-        ]
-        self.display_categories()
-
-    def display_categories(self):
-        for i in reversed(range(self.scroll_layout.count())):
-            self.scroll_layout.itemAt(i).widget().deleteLater()
-
-        row, col = 0, 0
-        for category in self.categories:
-            if not category['items']:
-                continue
-
-            category_label = QLabel(category['category'])
-            category_label.setStyleSheet("font-weight: bold; font-size: 20px;")
-            self.scroll_layout.addWidget(category_label, row, 0, 1, 3)
-            row += 1
-
-            for item in category['items']:
-                item_widget = self.create_best_seller_item(item)
-                self.scroll_layout.addWidget(item_widget, row, col)
-                col += 1
-                if col > 2:
-                    col = 0
-                    row += 1
-            row += 1
 
 def main():
     app = QApplication(sys.argv)
