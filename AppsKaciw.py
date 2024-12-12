@@ -737,7 +737,7 @@ class HistoryDialog(QDialog):
             QMessageBox.information(
                 self, 
                 "Berhasil", 
-                f"Rating untuk {item_name} telah disimpan!"
+                f"Ulasan untuk {item_name} telah disimpan!"
             )
 
 class MenuCustomizationDialog(QDialog):
