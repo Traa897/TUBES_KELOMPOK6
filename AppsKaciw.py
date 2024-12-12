@@ -472,10 +472,14 @@ class CartDialog(QDialog):
         self.setWindowTitle("Keranjang Pesanan")
         self.setGeometry(300, 300, 400, 500)
         self.cart_items = cart_items
-        
+
         layout = QVBoxLayout()
         self.order_list = QListWidget()
         layout.addWidget(self.order_list)
+
+        self.total_label = QLabel("Total: Rp 0")
+        self.total_label.setStyleSheet("font-weight: bold; font-size: 18px;")
+        layout.addWidget(self.total_label)
 
         btn_layout = QHBoxLayout()
 
@@ -483,29 +487,25 @@ class CartDialog(QDialog):
         remove_btn.clicked.connect(self.remove_item)
         btn_layout.addWidget(remove_btn)
 
-        layout.addLayout(btn_layout)
-
-        self.total_label = QLabel("Total: Rp 0")
-        self.total_label.setStyleSheet("font-weight: bold; font-size: 18px;")
-        layout.addWidget(self.total_label)
-
-        order_btn = QPushButton("Check Out")
-        order_btn.clicked.connect(self.process_order)
-        layout.addWidget(order_btn)
-
         edit_quantity_btn = QPushButton("Perbarui jumlah item")
         edit_quantity_btn.clicked.connect(self.edit_item_quantity)
-        layout.addWidget(edit_quantity_btn)
+        btn_layout.addWidget(edit_quantity_btn)
+
+        layout.addLayout(btn_layout)
 
         payment_group = QButtonGroup(self)
         self.transfer_radio = QRadioButton("Transfer Bank")
         self.cod_radio = QRadioButton("Cash on Delivery (COD)")
         payment_group.addButton(self.transfer_radio)
         payment_group.addButton(self.cod_radio)
-        
+
         layout.addWidget(QLabel("Pilih Metode Pembayaran:"))
         layout.addWidget(self.transfer_radio)
         layout.addWidget(self.cod_radio)
+
+        order_btn = QPushButton("Check Out")
+        order_btn.clicked.connect(self.process_order)
+        layout.addWidget(order_btn)
 
         self.setLayout(layout)
         self.update_cart()
