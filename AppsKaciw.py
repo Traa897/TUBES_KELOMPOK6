@@ -235,6 +235,7 @@ class BestSellerRecommendationPage(QMainWindow):
         self.setGeometry(100, 100, 1200, 800)   
 
         self.cart_items = []
+        self.history_items = []
         
         main_container = QWidget()
         main_layout = QVBoxLayout(main_container)
@@ -250,6 +251,7 @@ class BestSellerRecommendationPage(QMainWindow):
         cart_btn.setStyleSheet("background-color: rgb(68, 116, 120); color: white; border-radius: 5px; padding: 5px;")
         
         history_btn = QPushButton("🧾 Riwayat")
+        history_btn.clicked.connect(self.show_history)
         history_btn.setStyleSheet("background-color: rgb(68, 116, 120); color: white; border-radius: 5px; padding: 5px;")
         
         button_layout.addWidget(cart_btn)
@@ -409,6 +411,10 @@ class BestSellerRecommendationPage(QMainWindow):
         dialog = CartDialog(self.cart_items, self)
         dialog.exec_()
 
+    def show_history(self):
+        dialog = HistoryDialog(self.history_items, self)
+        dialog.exec_()
+
     def filter_items(self):
         query = self.search_input.text().lower()
         self.categories = [
@@ -466,7 +472,7 @@ class CartDialog(QDialog):
         self.setWindowTitle("Keranjang Pesanan")
         self.setGeometry(300, 300, 400, 500)
         self.cart_items = cart_items
-
+        
         layout = QVBoxLayout()
         self.order_list = QListWidget()
         layout.addWidget(self.order_list)
@@ -588,10 +594,38 @@ class CartDialog(QDialog):
             )
 
             if reply == QMessageBox.Yes:
+                
+                # item_checkout = []
+                for item in self.cart_items:
+                    item_checkout =     (f"{item.name} x{item.quantity} - Rp {item.total_price:,}")
+                    self.parent().history_items.append(item_checkout)
+
                 QMessageBox.information(self, "Pesanan Berhasil", "Terima kasih telah memesan!")
+                
                 self.cart_items.clear()
                 self.update_cart()
                 self.accept()
+
+
+class HistoryDialog(QDialog):
+    def __init__(self, history_items, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Riwayat Pesanan")
+        self.setGeometry(300, 300, 400, 500)
+        self.history_items = history_items
+
+        layout = QVBoxLayout()
+        self.history_list = QListWidget()
+        layout.addWidget(self.history_list)
+
+        self.setLayout(layout)
+        self.update_history()
+    
+    def update_history(self):
+        self.history_list.clear()
+        for item in self.parent().history_items:
+            list_item = QListWidgetItem(item)
+            self.history_list.addItem(list_item)
 
 
 class MenuCustomizationDialog(QDialog):
