@@ -245,15 +245,15 @@ class BestSellerRecommendationPage(QMainWindow):
         main_layout.addWidget(self.search_input)
 
         button_layout = QHBoxLayout()
-        cart_btn = QPushButton("\U0001f6d2 Keranjang")
+        cart_btn = QPushButton("🛒 Keranjang")
         cart_btn.clicked.connect(self.show_cart)
         cart_btn.setStyleSheet("background-color: rgb(68, 116, 120); color: white; border-radius: 5px; padding: 5px;")
         
-        menu_btn = QPushButton("\u22ee")
-        menu_btn.setStyleSheet("background-color: rgb(68, 116, 120); color: white; border-radius: 5px; padding: 5px;")
+        history_btn = QPushButton("🧾 Riwayat")
+        history_btn.setStyleSheet("background-color: rgb(68, 116, 120); color: white; border-radius: 5px; padding: 5px;")
         
         button_layout.addWidget(cart_btn)
-        button_layout.addWidget(menu_btn)
+        button_layout.addWidget(history_btn)
         main_layout.addLayout(button_layout)
 
         scroll_area = QScrollArea()
