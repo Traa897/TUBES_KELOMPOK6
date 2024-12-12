@@ -3,7 +3,6 @@ import os
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-#import PyQt5.UI
 data_file = "data_login.txt"
 
 
@@ -237,44 +236,37 @@ class BestSellerRecommendationPage(QMainWindow):
 
         self.cart_items = []
         
-        # Main container
         main_container = QWidget()
         main_layout = QVBoxLayout(main_container)
 
-        # Search input
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Cari makanan...")
         self.search_input.textChanged.connect(self.filter_items)
         main_layout.addWidget(self.search_input)
 
-        # Cart and Menu buttons
         button_layout = QHBoxLayout()
-        cart_btn = QPushButton("\U0001f6d2 Keranjang")  # Shopping Cart emoji
+        cart_btn = QPushButton("\U0001f6d2 Keranjang")
         cart_btn.clicked.connect(self.show_cart)
         cart_btn.setStyleSheet("background-color: rgb(68, 116, 120); color: white; border-radius: 5px; padding: 5px;")
         
-        menu_btn = QPushButton("\u22ee")  # Vertical Ellipsis
+        menu_btn = QPushButton("\u22ee")
         menu_btn.setStyleSheet("background-color: rgb(68, 116, 120); color: white; border-radius: 5px; padding: 5px;")
         
         button_layout.addWidget(cart_btn)
         button_layout.addWidget(menu_btn)
         main_layout.addLayout(button_layout)
 
-        # Scroll Area
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         
-        # Scroll Widget
         scroll_widget = QWidget()
         self.scroll_layout = QGridLayout(scroll_widget)
         scroll_area.setWidget(scroll_widget)
         
         main_layout.addWidget(scroll_area)
         
-        # Set central widget
         self.setCentralWidget(main_container)
 
-        # Categories
         self.original_categories = [
             {
                 "category": "Makanan Tradisional",
@@ -334,7 +326,6 @@ class BestSellerRecommendationPage(QMainWindow):
         self.display_categories()
 
     def create_best_seller_item(self, item):
-        # ... (previously defined method remains the same)
         item_widget = QFrame()
         item_widget.setStyleSheet("""
             QFrame {
@@ -399,36 +390,6 @@ class BestSellerRecommendationPage(QMainWindow):
 
         item_widget.setLayout(layout)
         return item_widget
-
-    def display_categories(self):
-        # Clear existing layout
-        for i in reversed(range(self.scroll_layout.count())): 
-            widget = self.scroll_layout.itemAt(i).widget()
-            if widget is not None:
-                widget.deleteLater()
-
-        row, col = 0, 0
-        for category in self.categories:
-            if not category['items']:
-                continue
-
-            # Add category label
-            category_label = QLabel(category['category'])
-            category_label.setStyleSheet("font-weight: bold; font-size: 20px; margin-top: 20px;")
-            self.scroll_layout.addWidget(category_label, row, 0, 1, 3)
-            row += 1
-
-            # Add items for this category
-            for item in category['items']:
-                item_widget = self.create_best_seller_item(item)
-                self.scroll_layout.addWidget(item_widget, row, col)
-                col += 1
-                if col > 2:
-                    col = 0
-                    row += 1
-            
-            row += 1
-            col = 0
 
     def customize_item(self, item):
         dialog = MenuCustomizationDialog(item, self)
@@ -601,7 +562,7 @@ class CartDialog(QDialog):
             cart_item.quantity,
             1,
             100
-        )
+            )
 
         if ok:
             cart_item.quantity = quantity
@@ -687,9 +648,7 @@ class MenuCustomizationDialog(QDialog):
         self.done(self.quantity)
 
 def main():
-    app = QApplication(sys.argv)
-    # ui = Ui_Form()
-    # ui = setupUi (From) 
+    app = QApplication(sys.argv) 
     login_app = LoginApp()
     login_app.show()
     sys.exit(app.exec_())
