@@ -618,7 +618,6 @@ class RatingDialog(QDialog):
         item_label.setFont(QFont('Arial', 12))
         layout.addWidget(item_label)
         
-        
         rating_layout = QHBoxLayout()
         self.rating_buttons = []
         rating_label = QLabel("Rating Makanan:")
@@ -651,7 +650,8 @@ class RatingDialog(QDialog):
         self.order_comment_edit.setPlaceholderText("Tulis komentar tentang pesanan Anda...")
         layout.addWidget(self.order_comment_edit)
         
-        submit_btn = QPushButton("Submit Rating & Komentar")
+        submit_btn = QPushButton("Kirim Ulasan")
+        submit_btn.setStyleSheet("background-color: rgb(68, 116, 120); color: white; border-radius: 5px; padding: 5px;")
         submit_btn.clicked.connect(self.submit_rating)
         layout.addWidget(submit_btn)
         
@@ -696,7 +696,8 @@ class HistoryDialog(QDialog):
         self.history_list = QListWidget()
         layout.addWidget(self.history_list)
         
-        add_rating_btn = QPushButton("Tambah Rating")
+        add_rating_btn = QPushButton("Tambahkan Ulasan")
+        add_rating_btn.setStyleSheet("background-color: rgb(68, 116, 120); color: white; border-radius: 5px; padding: 5px;")
         add_rating_btn.clicked.connect(self.add_rating)
         layout.addWidget(add_rating_btn)
         
