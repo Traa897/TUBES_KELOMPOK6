@@ -308,7 +308,7 @@ class BestSellerRecommendationPage(QMainWindow):
                         "description": "Kebab asli Turkey Paling enak"
                     },
                     {
-                        "name": "Salad Buah Mama Joice",
+                        "name": "Salad Buah Mama Vaness",
                         "restaurant": "Benedict's Restaurant",
                         "rating": 5.0,
                         "price": "Rp 65.000",
