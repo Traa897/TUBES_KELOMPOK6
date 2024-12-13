@@ -293,7 +293,7 @@ class BestSellerRecommendationPage(QMainWindow):
                         "restaurant": "Mie Ayam Kusman",
                         "rating": 4.6,
                         "price": "Rp 55.000",
-                        "description": "Mie Ayam dengan kuah yang sangat enak dan gurih"
+                        "description": "Mie Ayam dengan kuah yang sangat gurih"
                     },
                 ]
             },
