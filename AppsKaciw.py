@@ -1,38 +1,201 @@
 import sys
+import json
 import os
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import*
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-data_file = "data_login.txt"
-
 
 class UserManager:
     def __init__(self, data_file):
         self.data_file = data_file
+        try:
+            with open(data_file, 'r') as f:
+                self.users = json.load(f)
+        except FileNotFoundError:
+            self.users = {}
+            self.save_data()
 
-    def load_users(self):
-        if not os.path.exists(self.data_file):
-            return []
-        with open(self.data_file, "r") as file:
-            lines = file.readlines()
-        return [{"username": line.split(",")[0], "password": line.split(",")[1].strip()} for line in lines]
-
-    def save_user(self, username, password):
-        with open(self.data_file, "a") as file:
-            file.write(f"{username},{password}\n")
+    def save_data(self):
+        with open(self.data_file, 'w') as f:
+            json.dump(self.users, f)
 
     def add_user(self, username, password):
-        users = self.load_users()
-        if any(user['username'] == username for user in users):
+        if username in self.users:
             return False
-        self.save_user(username, password)
+        self.users[username] = password
+        self.save_data()
         return True
 
     def validate_login(self, username, password):
-        users = self.load_users()
-        return any(user['username'] == username and user['password'] == password for user in users)
+        return username in self.users and self.users[username] == password
 
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(640, 500)
+        MainWindow.setWindowTitle("KaciwFood")
+        
+        MainWindow.setStyleSheet("""
+            QMainWindow {
+                border-image: url(C:/Users/ASUS TUF/programing/CODINGAN KULIAH/ALPRO H/TUBES SMST1/Kaciw_Delivery.png) 0 0 0 0 stretch stretch;
+            }
+            QWidget#centralwidget {
+                background-color: transparent;
+            }
+        """)
+        
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        
+        self.mainLayout = QtWidgets.QVBoxLayout(self.centralwidget)
+        
+        self.container = QtWidgets.QWidget()
+        self.container.setFixedSize(700, 610)
+        self.container.setStyleSheet("""
+            background-color: rgba(170, 226, 194, 180);
+            border-radius: 20px;
+        """)
+        
+        
+        self.mainLayout.addWidget(self.container, 0, Qt.AlignCenter)
+        
+        
+        self.label = QtWidgets.QLabel(self.container)
+        self.label.setGeometry(QtCore.QRect(140, 270, 400, 300))
+        self.label.setStyleSheet("background-color: rgba(207, 255, 231, 200);\n"
+                               "border-radius: 10px")
+        self.label.setText("")
+       
+        self.label_3 = QtWidgets.QLabel(self.container)
+        self.label_3.setGeometry(QtCore.QRect(240, 40, 200, 200))
+        self.label_3.setText("")
+        self.label_3.setPixmap(QtGui.QPixmap("C:/Users/ASUS TUF/programing/CODINGAN KULIAH/ALPRO H/TUBES SMST1/Ikon_Kaciw_Food_Delivery.png"))
+        self.label_3.setScaledContents(True)
+        
+      
+        self.label_4 = QtWidgets.QLabel(self.container)
+        self.label_4.setGeometry(QtCore.QRect(255, 290, 180, 40))
+        font = QtGui.QFont()
+        font.setPointSize(15)
+        font.setBold(True)
+        self.label_4.setFont(font)
+        self.label_4.setStyleSheet("color : rgb(68, 116, 120);\n"
+                                 "background-color : rgb(207, 255, 231);")
+        self.label_4.setAlignment(Qt.AlignCenter)
+        self.label_4.setText("Log In")
+        
 
+        self.username = QtWidgets.QLineEdit(self.container)
+        self.username.setGeometry(QtCore.QRect(240, 350, 200, 40))
+        self.username.setPlaceholderText("Username")
+        self.username.setAlignment(Qt.AlignCenter)
+        self.username.setStyleSheet("""
+            QLineEdit {
+                background-color:rgba(0, 0, 0, 0);
+                border:none;
+                border-bottom:2px solid rgba(46, 82, 101, 200);
+                color:rgba(0, 0, 0, 240);
+                padding-bottom:7px;
+                font-weight: bold;
+                font-size: 10pt;
+            }
+        """)
+        
+        self.password = QtWidgets.QLineEdit(self.container)
+        self.password.setGeometry(QtCore.QRect(240, 410, 200, 40))
+        self.password.setPlaceholderText("Password")
+        self.password.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.password.setAlignment(Qt.AlignCenter)
+        self.password.setStyleSheet("""
+            QLineEdit {
+                background-color:rgba(0, 0, 0, 0);
+                border:none;
+                border-bottom:2px solid rgba(46, 82, 101, 200);
+                color:rgba(0, 0, 0, 240);
+                padding-bottom:7px;
+                font-weight: bold;
+                font-size: 10pt;
+            }
+        """)
+        
+        self.loginButton = QtWidgets.QPushButton(self.container)
+        self.loginButton.setGeometry(QtCore.QRect(270, 470, 140, 35))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        self.loginButton.setFont(font)
+        self.loginButton.setText("L O G I N")
+        self.loginButton.setObjectName("loginButton")
+        self.loginButton.setStyleSheet("""
+            QPushButton#loginButton {
+                background-color: qlineargradient(spread:pad, x1:0, y1:0.505682, x2:1, y2:0.477, stop:0 rgb(154, 226, 194) stop:1 rgb(170, 232, 232));
+                color:rgb(92, 151, 142);
+                border-radius:5px;
+            }
+            QPushButton#loginButton:hover {
+                background-color: qlineargradient(spread:pad, x1:0, y1:0.505682, x2:1, y2:0.477, stop:0 rgba(150, 123, 111, 219), stop:1 rgba(85, 81, 84, 226));
+            }
+            QPushButton#loginButton:pressed {
+                padding-left:5px;
+                padding-top:5px;
+                background-color:rgba(150,123, 111, 255);
+            }
+        """)
+        
+        self.signupButton = QtWidgets.QPushButton(self.container)
+        self.signupButton.setGeometry(QtCore.QRect(200, 520, 290, 10))
+        font = QtGui.QFont()
+        font.setPointSize(8)
+        font.setBold(True)
+        self.signupButton.setFont(font)
+        self.signupButton.setText("Didn't have an account? Sign up now")
+        self.signupButton.setObjectName("SignupButton")
+        self.signupButton.setStyleSheet("""
+            QPushButton#SignupButton {  
+                background-color: transparent;
+                color: rgba(150,123, 111, 255);  
+                border-radius: 5px;
+            }
+            QPushButton#SignupButton:hover { 
+                color: rgb(92, 151, 142);  
+                text-decoration: underline;  
+            }
+            QPushButton#SignupButton:pressed {  
+                padding-left: 5px;
+                padding-top: 5px;
+                color: rgb(68, 116, 120);  
+            }
+        """)
+        
+        MainWindow.setCentralWidget(self.centralwidget)
+
+class MainWindow(QtWidgets.QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        self.user_manager = UserManager('data_pengguna.json')
+        
+        self.ui.loginButton.clicked.connect(self.handle_login)
+        self.ui.signupButton.clicked.connect(self.handle_signup)
+
+    def handle_login(self):
+        username = self.ui.username.text()
+        password = self.ui.password.text()
+        
+        if self.user_manager.validate_login(username, password):
+            QMessageBox.information(self, 'Login Berhasil', 'Selamat datang!')
+            self.best_seller_page = BestSellerRecommendationPage()
+            self.best_seller_page.show()
+            self.hide()
+            
+        else:
+            QMessageBox.warning(self, 'Login Gagal', 'Username atau password salah')
+
+    def handle_signup(self):
+        dialog = RegistrationDialog(self.user_manager, self)
+        dialog.exec_()  
 
 class RegistrationDialog(QDialog):
     def __init__(self, user_manager, parent=None):
@@ -55,7 +218,7 @@ class RegistrationDialog(QDialog):
                 font-size: 14px;
             }
             QPushButton {
-                background-color: ;
+                background-color: rgb(68, 116, 120);
                 color: white;
                 border: none;
                 padding: 20px;
@@ -63,21 +226,23 @@ class RegistrationDialog(QDialog):
                 font-size: 16px;
             }
             QPushButton:hover {
-                background-color:  rgb(68, 116, 120);
+                background-color: rgb(68, 116, 120);
             }
         """)
 
         layout = QVBoxLayout()
+        
         title_label = QLabel('Buat Akun Baru')
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setStyleSheet("""
             font-size: 24px;
             font-weight: bold;
-            color:  rgb(68, 116, 120);
+            color: rgb(68, 116, 120);
             margin-bottom: 20px;
         """)
         layout.addWidget(title_label)
 
+        # Username input
         username_layout = QVBoxLayout()
         username_label = QLabel('Username')
         self.username_input = QLineEdit()
@@ -85,6 +250,7 @@ class RegistrationDialog(QDialog):
         username_layout.addWidget(self.username_input)
         layout.addLayout(username_layout)
 
+        # Password input
         password_layout = QVBoxLayout()
         password_label = QLabel('Password')
         self.password_input = QLineEdit()
@@ -93,6 +259,7 @@ class RegistrationDialog(QDialog):
         password_layout.addWidget(self.password_input)
         layout.addLayout(password_layout)
 
+        # Confirm password input
         confirm_password_layout = QVBoxLayout()
         confirm_password_label = QLabel('Konfirmasi Password')
         self.confirm_password_input = QLineEdit()
@@ -101,14 +268,10 @@ class RegistrationDialog(QDialog):
         confirm_password_layout.addWidget(self.confirm_password_input)
         layout.addLayout(confirm_password_layout)
 
+        # Register button
         register_btn = QPushButton('Daftar')
         register_btn.clicked.connect(self.register)
         layout.addWidget(register_btn)
-
-        # login_link = QLabel('Sudah punya akun? <a href="#login">Login</a>')
-        # login_link.setOpenExternalLinks(True)
-        # login_link.setAlignment(Qt.AlignCenter)
-        # layout.addWidget(login_link)
 
         self.setLayout(layout)
 
@@ -132,16 +295,10 @@ class RegistrationDialog(QDialog):
             QMessageBox.warning(self, 'Registrasi Gagal', 'Username sudah digunakan')
 
 
-class LoginApp(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.user_manager = UserManager(data_file)
-        self.initUI()
-
     def initUI(self):
         self.setWindowTitle('Kaciw Food Delivery')
         self.setGeometry(100, 100, 400, 500)
-        self.setWindowIcon(QIcon('D:/Cool-Yeah/SEMESTER 1/Algoritma Pemrograman H/CODE/Ikon_Kaciw_Food_Delivery.png'))
+        self.setWindowIcon(QIcon('C:/Users/ASUS TUF//programing/ALPRO H/TUBES SMST1/Ikon_Kaciw_Food_Delivery.png'))
         self.setStyleSheet("""
             QWidget {
                 background-color: #f0f0f0;
@@ -227,12 +384,11 @@ class LoginApp(QWidget):
         registration_dialog = RegistrationDialog(self.user_manager, self)
         registration_dialog.exec_()
 
-
-class BestSellerRecommendationPage(QMainWindow):
+class BestSellerRecommendationPage(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Kaciw Food Delivery")
-        self.setWindowIcon(QIcon('D:/Cool-Yeah/SEMESTER 1/Algoritma Pemrograman H/CODE/Ikon_Kaciw_Food_Delivery.png'))
+        self.setWindowIcon(QIcon('C:/Users/ASUS TUF//programing/ALPRO H/TUBES SMST1/Ikon_Kaciw_Food_Delivery.png'))
         self.setGeometry(100, 100, 1200, 800)
 
         self.cart_items = []
@@ -793,11 +949,9 @@ class MenuCustomizationDialog(QDialog):
     def add_to_cart(self):
         self.done(self.quantity)
 
-def main():
-    app = QApplication(sys.argv) 
-    login_app = LoginApp()
-    login_app.show()
-    sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    main()
+    app = QtWidgets.QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec_())
